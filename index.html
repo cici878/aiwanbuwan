@@ -1,0 +1,2754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="爱玩不玩" />
+  <title>爱玩不玩 · 四人私密社交派对</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #F2F3F5;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    /* Ins 经典渐变头像外环 */
+    .ins-ring {
+      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      padding: 2.5px;
+    }
+    .ins-ring-subtle {
+      background: linear-gradient(135deg, #FF7A59 0%, #D62976 50%, #962FBF 100%);
+      padding: 2px;
+    }
+    .ins-gradient-btn {
+      background: linear-gradient(135deg, #FF5E62 0%, #D62976 60%, #962FBF 100%);
+    }
+    /* 双击点赞红心动画 */
+    @keyframes heartPop {
+      0% { transform: scale(0); opacity: 0; }
+      35% { transform: scale(1.25); opacity: 1; }
+      70% { transform: scale(0.95); opacity: 1; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+    .heart-burst {
+      animation: heartPop 0.85s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
+    }
+    /* 隐藏滚动条保留滚动 */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* 炸弹抖动动画 */
+    @keyframes bombShake {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-6deg) scale(1.05); }
+      75% { transform: rotate(6deg) scale(1.05); }
+    }
+    .bomb-shake {
+      animation: bombShake 0.35s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="flex justify-center items-center min-h-screen">
+
+  <!-- 移动端原生质感容器（桌面端居中展示手机视口，移动端全屏铺满） -->
+  <div id="app-shell" class="w-full max-w-[430px] h-[100dvh] sm:h-[850px] sm:max-h-[92vh] bg-white sm:rounded-[36px] sm:shadow-[0_20px_60px_rgba(0,0,0,0.12)] sm:border sm:border-[#DBDBDB] flex flex-col overflow-hidden relative">
+
+    <!-- 顶部视角测试切换条（方便体验主理人审批与新访客等待审核双视角） -->
+    <div class="bg-[#FAFAFA] border-b border-[#EFEFEF] px-3 py-1.5 flex items-center justify-between text-[11px] shrink-0 z-30">
+      <div class="flex items-center gap-1.5 text-neutral-500">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>模拟视角切换:</span>
+      </div>
+      <div class="flex bg-neutral-200/80 p-0.5 rounded-full">
+        <button id="role-owner-btn" onclick="switchViewRole('owner')" class="px-2.5 py-0.5 rounded-full font-semibold bg-white text-neutral-900 shadow-xs transition">
+          👑 主理人(我)
+        </button>
+        <button id="role-guest-btn" onclick="switchViewRole('guest')" class="px-2.5 py-0.5 rounded-full font-medium text-neutral-600 transition">
+          🚪 新访客申请视角
+        </button>
+      </div>
+    </div>
+
+    <!-- 全局轻提示 Toast -->
+    <div id="toast-box" class="pointer-events-none fixed top-14 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 translate-y-[-10px]">
+      <div id="toast-text" class="bg-neutral-900/90 backdrop-blur-md text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 whitespace-nowrap">
+      </div>
+    </div>
+
+    <!-- ==================== 访客/朋友的朋友入驻申请与等待审核门禁界面 ==================== -->
+    <div id="guest-gate-view" class="hidden flex-1 flex flex-col bg-[#FAFAFA] overflow-y-auto no-scrollbar">
+      <!-- 顶部品牌栏 -->
+      <div class="px-5 pt-6 pb-3 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold tracking-widest uppercase text-pink-600">AIWANBUWAN PRIVATE SPACE</span>
+          <h1 class="text-2xl font-bold tracking-tight text-neutral-900 mt-0.5">爱玩不玩 · 入驻审批中</h1>
+        </div>
+        <span class="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-medium">
+          🔒 仅限主理人审批制
+        </span>
+      </div>
+
+      <!-- 访客已提交申请后的等待审核卡片 -->
+      <div id="guest-waiting-card" class="hidden mx-5 my-4 bg-white border border-[#DBDBDB] rounded-3xl p-6 text-center shadow-xs">
+        <div class="w-20 h-20 mx-auto rounded-full ins-ring mb-4">
+          <img id="guest-wait-avatar" src="" class="w-full h-full object-cover rounded-full bg-white p-0.5" alt="avatar">
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold mb-2">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+          等待主理人审核放行
+        </div>
+        <h2 id="guest-wait-name" class="text-lg font-bold text-neutral-900">新访客</h2>
+        <p id="guest-wait-id" class="text-xs font-mono text-neutral-500 mt-0.5">虚拟号: #000000</p>
+        <div class="mt-4 p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF] text-left text-xs text-neutral-600 space-y-1.5">
+          <p>🔗 邀请来源：<span id="guest-wait-inviter" class="font-semibold text-neutral-900">@阿泽 (ID: 102938)</span></p>
+          <p>🛡️ 安全机制：本空间已开启<span class="font-semibold text-neutral-900">「全员需主理人同意」</span>，无论是好友还是好友的朋友，均需主理人确认后方可进入聊天与游戏厅。</p>
+        </div>
+        <div class="mt-5 flex flex-col gap-2.5">
+          <button onclick="switchViewRole('owner')" class="w-full py-3 rounded-2xl ins-gradient-btn text-white text-sm font-semibold shadow-sm active:scale-[0.98] transition">
+            切换回「主理人视角」去批准自己 →
+          </button>
+          <button onclick="resetGuestApplication()" class="w-full py-2.5 rounded-2xl bg-neutral-100 text-neutral-600 text-xs font-medium">
+            修改资料 / 重新提交申请
+          </button>
+        </div>
+      </div>
+
+      <!-- 访客填写虚拟号与资料表单 -->
+      <div id="guest-form-card" class="mx-5 my-2 bg-white border border-[#DBDBDB] rounded-3xl p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-[#EFEFEF] pb-3">
+          <div>
+            <h2 class="text-base font-bold text-neutral-900">创建虚拟身份并申请入驻</h2>
+            <p class="text-xs text-neutral-500 mt-0.5">无需手机号，自动分配专属 6 位虚拟号</p>
+          </div>
+          <button onclick="regenerateGuestID()" class="text-xs font-medium text-pink-600 bg-pink-50 px-2.5 py-1.5 rounded-xl active:scale-95 transition">
+            🎲 换个虚拟号
+          </button>
+        </div>
+
+        <!-- 虚拟号展示 -->
+        <div class="bg-[#FAFAFA] border border-[#EFEFEF] rounded-2xl p-3 flex items-center justify-between">
+          <span class="text-xs text-neutral-500">系统分配虚拟号</span>
+          <span id="guest-gen-id" class="text-base font-mono font-bold tracking-wider text-neutral-900">#492817</span>
+        </div>
+
+        <!-- 选择头像 -->
+        <div>
+          <label class="block text-xs font-semibold text-neutral-700 mb-2">选择专属头像</label>
+          <div id="guest-avatar-picker" class="grid grid-cols-5 gap-2.5"></div>
+        </div>
+
+        <!-- 输入昵称 -->
+        <div>
+          <label class="block text-xs font-semibold text-neutral-700 mb-1.5">你的虚拟昵称</label>
+          <input id="guest-nickname-input" type="text" value="林间小鹿" placeholder="输入你想展示的昵称..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-sm focus:outline-none focus:border-neutral-900 transition" />
+        </div>
+
+        <!-- 邀请人虚拟号 -->
+        <div>
+          <label class="block text-xs font-semibold text-neutral-700 mb-1.5">邀请人虚拟号 / 推荐来源</label>
+          <select id="guest-inviter-select" class="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-sm focus:outline-none focus:border-neutral-900">
+            <option value="好友 @阿泽 (ID: 102938)">好友 @阿泽 (ID: 102938) 推荐</option>
+            <option value="好友 @苏打气泡 (ID: 556712)">好友 @苏打气泡 (ID: 556712) 邀请</option>
+            <option value="主理人分享的邀请卡片">主理人直接分享的邀请卡片</option>
+          </select>
+        </div>
+
+        <!-- 申请留言 -->
+        <div>
+          <label class="block text-xs font-semibold text-neutral-700 mb-1.5">给主理人的验证备注</label>
+          <input id="guest-note-input" type="text" value="哈喽！我是阿泽的朋友，周末一起来玩谁是卧底~" class="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-sm focus:outline-none focus:border-neutral-900" />
+        </div>
+
+        <button onclick="submitGuestApplication()" class="w-full py-3.5 rounded-2xl ins-gradient-btn text-white text-sm font-semibold shadow-md active:scale-[0.98] transition">
+          提交入驻申请（需主理人同意）
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== 主理人 & 已通过成员主应用界面 ==================== -->
+    <div id="main-app-view" class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- 顶部导航栏 (Ins 风格简约顶栏) -->
+      <header class="h-14 px-4 bg-white border-b border-[#EFEFEF] flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center gap-2">
+          <h1 id="header-title" class="text-lg font-bold tracking-tight text-neutral-900">POKE · 聊天</h1>
+          <span class="px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 text-[10px] font-semibold">2-4人私密空间</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- 搜索虚拟号添加好友按钮 -->
+          <button onclick="openAddFriendModal()" class="w-9 h-9 rounded-full bg-[#FAFAFA] border border-[#EFEFEF] flex items-center justify-center text-neutral-800 hover:bg-neutral-100 active:scale-95 transition" title="搜虚拟号加好友">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          </button>
+          <!-- 主理人审批快捷入口按钮 -->
+          <button onclick="switchTab('profile'); scrollToApproval();" class="relative w-9 h-9 rounded-full bg-[#FAFAFA] border border-[#EFEFEF] flex items-center justify-center text-neutral-800 hover:bg-neutral-100 active:scale-95 transition" title="入驻审批通知">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span id="header-pending-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">2</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- 主内容滚动区域 -->
+      <main class="flex-1 overflow-y-auto no-scrollbar bg-[#FAFAFA] relative">
+
+        <!-- ==================== TAB 1: 聊天与四人小队房间 ==================== -->
+        <section id="tab-chats" class="h-full flex flex-col">
+          <!-- 顶部 Ins Story 风格在线好友横滑条 -->
+          <div class="bg-white border-b border-[#EFEFEF] px-4 py-3 shrink-0">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">已获主理人批准的成员</span>
+              <span id="approved-count-label" class="text-[11px] text-neutral-500 font-medium">4 人在线</span>
+            </div>
+            <div id="story-friends-bar" class="flex items-center gap-3.5 overflow-x-auto no-scrollbar pb-1">
+              <!-- 动态渲染在线成员 -->
+            </div>
+          </div>
+
+          <!-- 会话列表 -->
+          <div id="chat-list-container" class="divide-y divide-[#EFEFEF] bg-white">
+            <!-- 动态渲染聊天列表 -->
+          </div>
+
+          <!-- 聊天对话详情浮层（点击某个聊天后滑入） -->
+          <div id="chat-room-drawer" class="hidden absolute inset-0 bg-white z-30 flex flex-col">
+            <!-- 聊天室顶栏 -->
+            <div class="h-14 px-3 border-b border-[#EFEFEF] flex items-center justify-between bg-white shrink-0">
+              <div class="flex items-center gap-2.5">
+                <button onclick="closeChatRoom()" class="p-2 rounded-full hover:bg-neutral-100 active:scale-90 transition">
+                  <svg class="w-5 h-5 text-neutral-800" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <div class="relative">
+                  <img id="active-chat-avatar" src="" class="w-9 h-9 rounded-full object-cover border border-[#EFEFEF]" alt="">
+                  <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+                </div>
+                <div>
+                  <h3 id="active-chat-title" class="text-sm font-bold text-neutral-900 leading-tight">四人密友小队</h3>
+                  <p id="active-chat-subtitle" class="text-[11px] text-neutral-400">全员已通过主理人审核</p>
+                </div>
+              </div>
+              <button onclick="sendGameInviteInChat()" class="px-3 py-1.5 rounded-full bg-pink-50 text-pink-600 border border-pink-100 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
+                <span>🎮</span> 邀玩2-4人局
+              </button>
+            </div>
+        <!-- ==================== TAB 3: 2-4人派对游戏厅 ==================== -->
+        <section id="tab-games" class="hidden p-4 space-y-4 pb-8">
+          <!-- 房间组队状态卡 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-pink-600">2-4 PLAYER PARTY ROOM</span>
+                <h2 class="text-base font-bold text-neutral-900">贴贴游戏大厅 · 已就绪</h2>
+              </div>
+              <button onclick="inviteAllToGame()" class="px-3 py-1.5 rounded-full bg-neutral-900 text-white text-xs font-semibold active:scale-95 transition">
+                📣 呼叫好友入座
+              </button>
+            </div>
+
+            <!-- 4个座位展示 -->
+            <div id="party-seats-grid" class="grid grid-cols-4 gap-2 text-center">
+              <!-- JS 渲染4个座位 -->
+            </div>
+          </div>
+
+          <!-- Ins 风格分段筛选 Tab：全部游戏 / 👫 2人双人 / 🎉 4人派对 -->
+          <div class="bg-neutral-200/70 p-1 rounded-2xl grid grid-cols-3 gap-1 text-xs">
+            <button onclick="filterGames('all')" id="filter-btn-all" class="py-2 rounded-xl font-bold bg-white text-neutral-900 shadow-xs transition">
+              全部游戏 (5)
+            </button>
+            <button onclick="filterGames('2p')" id="filter-btn-2p" class="py-2 rounded-xl font-medium text-neutral-600 hover:text-neutral-900 transition">
+              👫 2人双人
+            </button>
+            <button onclick="filterGames('4p')" id="filter-btn-4p" class="py-2 rounded-xl font-medium text-neutral-600 hover:text-neutral-900 transition">
+              🎉 4人派对
+            </button>
+          </div>
+
+          <!-- 游戏卡片列表容器 -->
+          <div id="games-list-container" class="space-y-3.5">
+
+            <!-- 双人游戏 1：双人五子棋 (Gomoku) -->
+            <div data-game-cat="2p" class="game-card-item bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-stone-800 to-amber-700 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                    ⚫
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <h4 class="text-base font-bold text-neutral-900">双人五子棋</h4>
+                      <span class="px-2 py-0.5 rounded-full bg-pink-50 text-pink-600 text-[10px] font-bold">2人专属</span>
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-0.5">极简温润棋盘，支持同屏双人对弈或与好友智能陪练过招</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">♟️ 支持悔棋 · 五子连珠高亮</span>
+                <button onclick="startGame('gomoku')" class="px-4 py-2 rounded-full ins-gradient-btn text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                  双人开局
+                </button>
+              </div>
+            </div>
+
+            <!-- 双人游戏 2：默契快问快答 (Sync Quiz) -->
+            <div data-game-cat="2p" class="game-card-item bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-400 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                    💞
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <h4 class="text-base font-bold text-neutral-900">默契快问快答</h4>
+                      <span class="px-2 py-0.5 rounded-full bg-pink-50 text-pink-600 text-[10px] font-bold">2人专属</span>
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-0.5">6道灵魂二选一，双方依次秘密作答揭晓心有灵犀指数</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">💌 生成专属默契度海报卡</span>
+                <button onclick="startGame('syncquiz')" class="px-4 py-2 rounded-full ins-gradient-btn text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                  测测默契
+                </button>
+              </div>
+            </div>
+
+            <!-- 四人游戏 1：谁是卧底 -->
+            <div data-game-cat="4p" class="game-card-item bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                    🕵️
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <h4 class="text-base font-bold text-neutral-900">谁是卧底</h4>
+                      <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">4人标准局</span>
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-0.5">3名平民 + 1名卧底，轮流描述词语并投票找出潜伏者</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">👥 4人标准局 · 约3分钟/局</span>
+                <button onclick="startGame('undercover')" class="px-4 py-2 rounded-full bg-neutral-900 text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                  立即开局
+                </button>
+              </div>
+            </div>
+
+            <!-- 四人游戏 2：数字炸弹 -->
+            <div data-game-cat="4p" class="game-card-item bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-500 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                    💣
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <h4 class="text-base font-bold text-neutral-900">数字炸弹</h4>
+                      <span class="px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 text-[10px] font-bold">2-4人局</span>
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-0.5">1~100 不断缩小安全区间，踩中炸弹者接受真心话惩罚！</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">⚡ 节奏超快 · 附带惩罚转盘</span>
+                <button onclick="startGame('bomb')" class="px-4 py-2 rounded-full bg-neutral-900 text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                  立即开局
+                </button>
+              </div>
+            </div>
+
+            <!-- 四人游戏 3：你画我猜 -->
+            <div data-game-cat="4p" class="game-card-item bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                    🎨
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <h4 class="text-base font-bold text-neutral-900">灵魂画手 · 你画我猜</h4>
+                      <span class="px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 text-[10px] font-bold">2-4人局</span>
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-0.5">1人根据词卡手绘涂鸦，其余好友实时抢答猜词</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">🖌️ 多色画笔粗细 · 实时抢答</span>
+                <button onclick="startGame('draw')" class="px-4 py-2 rounded-full bg-neutral-900 text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                  立即开局
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==================== TAB 2: Ins 风格朋友圈动态 ==================== -->
+        <section id="tab-feed" class="hidden pb-6">
+          <!-- 发布动态快捷栏 -->
+          <div class="bg-white border-b border-[#EFEFEF] px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <img id="feed-my-avatar" src="" class="w-9 h-9 rounded-full object-cover border border-[#EFEFEF]" alt="">
+              <button onclick="openNewPostModal()" class="text-left text-xs text-neutral-400 bg-[#FAFAFA] border border-[#EFEFEF] rounded-full px-4 py-2 w-52 hover:bg-neutral-100 transition">
+                分享此刻新鲜事（仅圈内可见）...
+              </button>
+            </div>
+            <button onclick="openNewPostModal()" class="px-3 py-1.5 rounded-full ins-gradient-btn text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+              + 发动态
+            </button>
+          </div>
+
+          <!-- 动态信息流列表 -->
+          <div id="moments-list" class="space-y-3 pt-2">
+            <!-- 动态卡片由 JS 渲染 -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB 3: 四人派对游戏厅 ==================== -->
+        <section id="tab-games" class="hidden p-4 space-y-4 pb-8">
+          <!-- 四人房间组队状态卡 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-pink-600">4-PLAYER PARTY ROOM</span>
+                <h2 class="text-base font-bold text-neutral-900">四人派对房间 · 已就绪</h2>
+              </div>
+              <button onclick="inviteAllToGame()" class="px-3 py-1.5 rounded-full bg-neutral-900 text-white text-xs font-semibold active:scale-95 transition">
+                📣 呼叫好友入座
+              </button>
+            </div>
+
+            <!-- 4个座位展示 -->
+            <div id="party-seats-grid" class="grid grid-cols-4 gap-2 text-center">
+              <!-- JS 渲染4个座位 -->
+            </div>
+          </div>
+
+          <!-- 游戏列表标题 -->
+          <div class="flex items-center justify-between px-1">
+            <h3 class="text-sm font-bold text-neutral-900">选择四人联机游戏</h3>
+            <span class="text-xs text-neutral-400">支持真人与智能好友补位</span>
+          </div>
+
+          <!-- 游戏卡片 1：谁是卧底 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-13 h-13 w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                  🕵️
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h4 class="text-base font-bold text-neutral-900">谁是卧底 · 4人局</h4>
+                    <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-bold">最热</span>
+                  </div>
+                  <p class="text-xs text-neutral-500 mt-0.5">3名平民 + 1名卧底，轮流描述词语并投票找出潜伏者</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+              <span class="text-[11px] text-neutral-400">👥 4人标准局 · 约3分钟/局</span>
+              <button onclick="startGame('undercover')" class="px-4 py-2 rounded-full ins-gradient-btn text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                立即开局
+              </button>
+            </div>
+          </div>
+
+          <!-- 游戏卡片 2：数字炸弹 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-500 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                  💣
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h4 class="text-base font-bold text-neutral-900">数字炸弹 · 4人轮流</h4>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">聚会必玩</span>
+                  </div>
+                  <p class="text-xs text-neutral-500 mt-0.5">1~100 不断缩小安全区间，踩中炸弹者接受真心话惩罚！</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+              <span class="text-[11px] text-neutral-400">⚡ 节奏超快 · 附带惩罚转盘</span>
+              <button onclick="startGame('bomb')" class="px-4 py-2 rounded-full bg-neutral-900 text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                立即开局
+              </button>
+            </div>
+          </div>
+
+          <!-- 游戏卡片 3：你画我猜 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs hover:border-neutral-400 transition">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                  🎨
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h4 class="text-base font-bold text-neutral-900">灵魂画手 · 你画我猜</h4>
+                    <span class="px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 text-[10px] font-bold">默契考验</span>
+                  </div>
+                  <p class="text-xs text-neutral-500 mt-0.5">1人根据词卡手绘涂鸦，其余3位好友实时抢答猜词</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3.5 pt-3 border-t border-[#F3F3F3] flex items-center justify-between">
+              <span class="text-[11px] text-neutral-400">🖌️ 支持触屏手绘 · 实时弹幕猜词</span>
+              <button onclick="startGame('draw')" class="px-4 py-2 rounded-full bg-neutral-900 text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                立即开局
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 4: 个人主页、虚拟号与主理人审批中心 ==================== -->
+        <section id="tab-profile" class="hidden pb-8">
+          <!-- Ins 风格个人资料卡 -->
+          <div class="bg-white border-b border-[#EFEFEF] px-5 pt-5 pb-4">
+            <div class="flex items-center gap-4">
+              <div class="relative group cursor-pointer" onclick="openEditProfileModal()">
+                <div class="w-20 h-20 rounded-full ins-ring">
+                  <img id="profile-avatar" src="" class="w-full h-full object-cover rounded-full bg-white p-0.5" alt="avatar">
+                </div>
+                <span class="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs border-2 border-white">✎</span>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <h2 id="profile-nickname" class="text-lg font-bold text-neutral-900">主理人·星野</h2>
+                  <span class="px-2 py-0.5 rounded-full bg-neutral-900 text-white text-[10px] font-semibold">👑 主理人</span>
+                </div>
+                <!-- 虚拟号一键复制胶囊 -->
+                <div class="mt-1.5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAFAFA] border border-[#DBDBDB]">
+                  <span class="text-xs text-neutral-500">虚拟号</span>
+                  <span id="profile-virtual-id" class="text-xs font-mono font-bold text-neutral-900">#882910</span>
+                  <button onclick="copyVirtualID()" class="text-[11px] font-semibold text-pink-600 hover:underline">复制</button>
+                </div>
+                <p id="profile-bio" class="text-xs text-neutral-600 mt-2">只和同频的朋友一起聊天玩游戏 ✨</p>
+              </div>
+            </div>
+
+            <!-- 数据概览条 -->
+            <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-[#F3F3F3] text-center">
+              <div>
+                <div id="stat-friends-count" class="text-base font-bold text-neutral-900">4</div>
+                <div class="text-[11px] text-neutral-500">圈内成员</div>
+              </div>
+              <div>
+                <div id="stat-pending-count" class="text-base font-bold text-rose-600">2</div>
+                <div class="text-[11px] text-neutral-500">待我审批</div>
+              </div>
+              <div>
+                <div class="text-base font-bold text-neutral-900">12</div>
+                <div class="text-[11px] text-neutral-500">派对局数</div>
+              </div>
+            </div>
+
+            <!-- 操作按钮组 -->
+            <div class="grid grid-cols-2 gap-2.5 mt-4">
+              <button onclick="openEditProfileModal()" class="py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-xs font-semibold text-neutral-900 active:scale-95 transition">
+                修改昵称 / 换头像
+              </button>
+              <button onclick="openInviteCardModal()" class="py-2.5 rounded-xl ins-gradient-btn text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                生成专属邀请卡
+              </button>
+            </div>
+          </div>
+
+          <!-- ==================== 核心功能：主理人入驻审批中心 ==================== -->
+          <div id="owner-approval-section" class="mx-4 mt-4 bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs">
+            <div class="flex items-center justify-between pb-3 border-b border-[#EFEFEF]">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-base">🛡️</span>
+                  <h3 class="text-sm font-bold text-neutral-900">主理人入驻审批中心</h3>
+                </div>
+                <p class="text-[11px] text-neutral-500 mt-0.5">好友及「好友的朋友」加入均需经你同意</p>
+              </div>
+              <!-- 严格审批模式开关 -->
+              <button id="strict-mode-toggle" onclick="toggleStrictMode()" class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-semibold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>严格审批: 开</span>
+              </button>
+            </div>
+
+            <!-- 待审批列表 -->
+            <div id="pending-requests-list" class="divide-y divide-[#F3F3F3] mt-1">
+              <!-- JS 动态渲染待审核用户 -->
+            </div>
+          </div>
+
+          <!-- 已通过的圈内好友管理 -->
+          <div class="mx-4 mt-4 bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold text-neutral-900">圈内已批准成员</h3>
+              <button onclick="openAddFriendModal()" class="text-xs font-semibold text-pink-600">+ 虚拟号添加</button>
+            </div>
+            <div id="approved-members-list" class="space-y-3">
+              <!-- JS 渲染已批准成员 -->
+            </div>
+          </div>
+
+          <!-- PWA 安装到手机/电脑桌面指南卡片 -->
+          <div class="mx-4 mt-4 bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-neutral-900 text-white flex items-center justify-center text-lg">
+                📲
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-neutral-900">安装「爱玩不玩」到桌面 (PWA)</h4>
+                <p class="text-[11px] text-neutral-500 mt-0.5">支持添加到 iOS / Android 主屏幕全屏运行</p>
+              </div>
+            </div>
+            <button onclick="openPwaInstallModal()" class="px-3 py-1.5 rounded-xl bg-neutral-100 text-neutral-900 text-xs font-semibold hover:bg-neutral-200 transition">
+              安装指南
+            </button>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- 底部四栏导航栏 (Ins 风格) -->
+      <nav class="h-16 bg-white border-t border-[#EFEFEF] px-2 flex items-center justify-around shrink-0 z-20">
+        <button onclick="switchTab('chats')" data-tab="chats" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 py-1 text-neutral-900">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.912 1.453 5.512 3.733 7.213V22l3.405-1.869c.909.251 1.872.388 2.862.388 5.523 0 10-4.145 10-9.276C22 6.145 17.523 2 12 2z"/></svg>
+          <span class="text-[10px] font-semibold">聊天</span>
+        </button>
+
+        <button onclick="switchTab('feed')" data-tab="feed" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 py-1 text-neutral-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+          <span class="text-[10px] font-medium">动态</span>
+        </button>
+
+        <button onclick="switchTab('games')" data-tab="games" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 py-1 text-neutral-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><rect x="2" y="5" width="20" height="14" rx="4"/></svg>
+          <span class="text-[10px] font-medium">游戏厅</span>
+        </button>
+
+        <button onclick="switchTab('profile')" data-tab="profile" class="nav-btn relative flex-1 flex flex-col items-center justify-center gap-1 py-1 text-neutral-400">
+          <div class="relative">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <span id="nav-pending-dot" class="absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"></span>
+          </div>
+          <span class="text-[10px] font-medium">我的</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ==================== 游戏全屏沉浸弹窗容器 ==================== -->
+    <div id="game-stage-modal" class="hidden absolute inset-0 bg-white z-40 flex flex-col">
+      <!-- 游戏顶栏 -->
+      <div class="h-14 px-4 border-b border-[#EFEFEF] flex items-center justify-between bg-white shrink-0">
+        <button onclick="closeGameModal()" class="flex items-center gap-1 text-xs font-semibold text-neutral-600 hover:text-neutral-900">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          <span>退出房间</span>
+        </button>
+        <h3 id="game-stage-title" class="text-sm font-bold text-neutral-900">POKE 游戏房间</h3>
+        <span id="game-stage-badge" class="px-2.5 py-1 rounded-full bg-pink-50 text-pink-600 text-[11px] font-semibold">4人已就座</span>
+      </div>
+
+      <!-- 游戏动态内容舞台 -->
+      <div id="game-stage-body" class="flex-1 overflow-y-auto no-scrollbar bg-[#FAFAFA] p-4 flex flex-col">
+        <!-- 由各个游戏模块渲染 -->
+      </div>
+    </div>
+
+    <!-- ==================== 弹窗 1: 编辑虚拟资料 & 换头像 ==================== -->
+    <div id="edit-profile-modal" class="hidden absolute inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-neutral-900">编辑虚拟身份资料</h3>
+          <button onclick="closeModal('edit-profile-modal')" class="text-neutral-400 hover:text-neutral-800 text-lg">✕</button>
+        </div>
+
+        <!-- 上传本地照片或选预设头像 -->
+        <div class="flex items-center gap-3">
+          <img id="edit-preview-avatar" src="" class="w-16 h-16 rounded-full object-cover border border-[#DBDBDB]" alt="">
+          <div class="space-y-1.5">
+            <label class="inline-block px-3 py-1.5 rounded-xl bg-neutral-900 text-white text-xs font-semibold cursor-pointer active:scale-95 transition">
+              📷 上传本地相册头像
+              <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" class="hidden" />
+            </label>
+            <p class="text-[11px] text-neutral-400">也可以从下方精选头像一键切换</p>
+          </div>
+        </div>
+
+        <div id="edit-avatar-presets" class="grid grid-cols-5 gap-2"></div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-700 mb-1">虚拟昵称</label>
+          <input id="edit-nickname-input" type="text" class="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-700 mb-1">个性签名</label>
+          <input id="edit-bio-input" type="text" class="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-sm" />
+        </div>
+
+        <div class="flex items-center justify-between bg-[#FAFAFA] px-3.5 py-2.5 rounded-xl border border-[#EFEFEF]">
+          <span class="text-xs text-neutral-500">专属虚拟号：<strong id="edit-id-display" class="font-mono text-neutral-900">#882910</strong></span>
+          <button onclick="randomizeMyVirtualID()" class="text-xs font-semibold text-pink-600">🎲 随机刷新号码</button>
+        </div>
+
+        <button onclick="saveProfileChanges()" class="w-full py-3 rounded-2xl ins-gradient-btn text-white text-sm font-semibold">
+          保存修改
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== 弹窗 2: 搜索虚拟号添加好友 ==================== -->
+    <div id="add-friend-modal" class="hidden absolute inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-bold text-neutral-900">通过虚拟号添加好友</h3>
+            <p class="text-[11px] text-neutral-500 mt-0.5">对方入驻后需经主理人同意方可加入圈子</p>
+          </div>
+          <button onclick="closeModal('add-friend-modal')" class="text-neutral-400 hover:text-neutral-800 text-lg">✕</button>
+        </div>
+
+        <div class="flex gap-2">
+          <input id="search-id-input" type="text" maxlength="6" placeholder="输入6位虚拟号 (如 778899)" class="flex-1 px-3.5 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-sm font-mono focus:outline-none focus:border-neutral-900" />
+          <button onclick="searchVirtualUser()" class="px-4 py-2.5 rounded-xl bg-neutral-900 text-white text-xs font-semibold">
+            搜索
+          </button>
+        </div>
+
+        <!-- 快捷测试虚拟号标签 -->
+        <div class="flex items-center gap-1.5 flex-wrap text-[11px]">
+          <span class="text-neutral-400">测试虚拟号：</span>
+          <button onclick="fillSearchID('778899')" class="px-2 py-0.5 rounded-md bg-neutral-100 font-mono text-neutral-700 hover:bg-neutral-200">778899</button>
+          <button onclick="fillSearchID('661204')" class="px-2 py-0.5 rounded-md bg-neutral-100 font-mono text-neutral-700 hover:bg-neutral-200">661204</button>
+        </div>
+
+        <div id="search-result-box" class="hidden p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF] flex items-center justify-between">
+          <!-- 搜索结果渲染 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 弹窗 3: 专属邀请卡片（分享给朋友） ==================== -->
+    <div id="invite-card-modal" class="hidden absolute inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-5">
+      <div class="bg-white w-full rounded-3xl overflow-hidden shadow-2xl border border-[#DBDBDB]">
+        <div class="ins-gradient-btn p-6 text-white text-center relative">
+          <button onclick="closeModal('invite-card-modal')" class="absolute top-3.5 right-4 text-white/80 hover:text-white text-base">✕</button>
+          <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold tracking-wider uppercase">AIWANBUWAN VIP INVITATION</span>
+          <h3 class="text-xl font-bold mt-2">爱玩不玩</h3>
+          <p class="text-xs text-white/85 mt-1">四人私密社交派对 · 虚拟号空间</p>
+        </div>
+        <div class="p-5 text-center space-y-3">
+          <img id="invite-card-avatar" src="" class="w-16 h-16 rounded-full mx-auto -mt-12 border-4 border-white object-cover shadow-md bg-white" alt="">
+          <div>
+            <p id="invite-card-owner" class="text-sm font-bold text-neutral-900">主理人·星野 邀请你加入</p>
+            <p id="invite-card-id" class="text-xs font-mono text-neutral-500 mt-0.5">主理人虚拟号: #882910</p>
+          </div>
+          <div class="p-3 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF] text-[11px] text-neutral-600 leading-relaxed">
+            🔒 <strong>主理人门禁已开启</strong><br>
+            打开应用创建虚拟号并填写邀请人，经主理人审核通过后即可解锁聊天与游戏大厅。
+          </div>
+          <button onclick="copyInviteText()" class="w-full py-3 rounded-2xl bg-neutral-900 text-white text-xs font-semibold active:scale-95 transition">
+            📋 复制邀请口令发给微信/QQ好友
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 弹窗 4: 发布 Ins 风格动态 ==================== -->
+    <div id="new-post-modal" class="hidden absolute inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-neutral-900">发布圈内动态</h3>
+          <button onclick="closeModal('new-post-modal')" class="text-neutral-400 hover:text-neutral-800 text-lg">✕</button>
+        </div>
+        <textarea id="post-content-input" rows="3" placeholder="写下此刻的想法，仅对已通过审批的好友可见..." class="w-full p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#DBDBDB] text-sm focus:outline-none focus:border-neutral-900"></textarea>
+
+        <div>
+          <span class="block text-xs font-semibold text-neutral-700 mb-2">选择 Ins 氛围配图（可选）</span>
+          <div id="post-photo-picker" class="grid grid-cols-4 gap-2"></div>
+        </div>
+
+        <button onclick="publishMoment()" class="w-full py-3 rounded-2xl ins-gradient-btn text-white text-sm font-semibold">
+          发布到圈子
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== 弹窗 5: PWA 安装指南 ==================== -->
+    <div id="pwa-install-modal" class="hidden absolute inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-5">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-neutral-900">📲 安装「爱玩不玩」到桌面</h3>
+          <button onclick="closeModal('pwa-install-modal')" class="text-neutral-400 hover:text-neutral-800 text-lg">✕</button>
+        </div>
+        <p class="text-xs text-neutral-600 leading-relaxed">
+          本应用采用 <strong>PWA 渐进式网页应用</strong> 架构，部署至 HTTPS 网址后，无需应用商店即可直接安装到手机主屏幕，享受全屏无边框原生体验：
+        </p>
+        <div class="space-y-2.5 text-xs">
+          <div class="p-3 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF]">
+            <p class="font-bold text-neutral-900">🍎 iPhone / iPad (Safari 浏览器)</p>
+            <p class="text-neutral-600 mt-1">点击底部工具栏的 <strong>「分享」图标</strong> → 向下滑动选择 <strong>「添加到主屏幕」</strong> → 点击右上角「添加」。</p>
+          </div>
+          <div class="p-3 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF]">
+            <p class="font-bold text-neutral-900">🤖 Android / 鸿蒙 (Chrome / Edge)</p>
+            <p class="text-neutral-600 mt-1">点击右上角 <strong>「⋮ 菜单」</strong> → 选择 <strong>「安装应用」</strong> 或 <strong>「添加到主屏幕」</strong>。</p>
+          </div>
+        </div>
+        <button onclick="closeModal('pwa-install-modal')" class="w-full py-2.5 rounded-2xl bg-neutral-900 text-white text-xs font-semibold">
+          我知道了
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ==================== 1. 动态注入 PWA Manifest 实现可安装能力 ====================
+    (function injectPWAManifest() {
+      const manifest = {
+        name: "爱玩不玩 · 四人私密社交派对",
+        short_name: "爱玩不玩",
+        start_url: ".",
+        display: "standalone",
+        background_color: "#FFFFFF",
+        theme_color: "#FFFFFF",
+        description: "Ins风四人私密社交派对与虚拟号小筑"
+      };
+      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+      const manifestURL = URL.createObjectURL(blob);
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestURL;
+      document.head.appendChild(link);
+    })();
+
+    // ==================== 2. 精选 Ins 质感头像库与氛围配图 ====================
+    const PRESET_AVATARS = [
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face"
+    ];
+
+    const PRESET_FEED_PHOTOS = [
+      "https://images.unsplash.com/photo-1511882150382-421056c89033?w=700&q=80",
+      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=700&q=80",
+      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=700&q=80",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=700&q=80"
+    ];
+
+    // ==================== 3. 全局应用状态 ====================
+    const appState = {
+      viewRole: 'owner', // 'owner' | 'guest'
+      strictApprovalMode: true,
+      currentUser: {
+        id: '882910',
+        nickname: '主理人·星野',
+        avatar: PRESET_AVATARS[0],
+        bio: '只和同频的朋友一起聊天玩游戏 ✨',
+        isOwner: true
+      },
+      guestDraft: {
+        id: '492817',
+        nickname: '林间小鹿',
+        avatar: PRESET_AVATARS[4],
+        inviter: '好友 @阿泽 (ID: 102938)',
+        note: '哈喽！我是阿泽的朋友，周末一起来玩谁是卧底~',
+        submitted: false
+      },
+      // 已通过主理人审批的圈内成员（含主理人共4人）
+      approvedMembers: [
+        {
+          id: '882910',
+          nickname: '主理人·星野',
+          avatar: PRESET_AVATARS[0],
+          status: '在线 · 房主',
+          invitedBy: '空间创建者',
+          isOwner: true
+        },
+        {
+          id: '102938',
+          nickname: '阿泽',
+          avatar: PRESET_AVATARS[1],
+          status: '在线 · 刚发了动态',
+          invitedBy: '主理人直接邀请',
+          isOwner: false
+        },
+        {
+          id: '556712',
+          nickname: '苏打气泡',
+          avatar: PRESET_AVATARS[2],
+          status: '在线 · 游戏大厅',
+          invitedBy: '主理人直接邀请',
+          isOwner: false
+        },
+        {
+          id: '339041',
+          nickname: '陈屿',
+          avatar: PRESET_AVATARS[3],
+          status: '刚刚活跃',
+          invitedBy: '好友 @阿泽 推荐（已批准）',
+          isOwner: false
+        }
+      ],
+      // 待主理人审批列表（朋友的朋友申请入驻）
+      pendingRequests: [
+        {
+          id: '904521',
+          nickname: '夏目漱石猫',
+          avatar: PRESET_AVATARS[6],
+          invitedBy: '好友 @阿泽 (ID: 102938) 邀请',
+          note: '阿泽拉我来凑第四人局的，主理人求通过！',
+          time: '2分钟前'
+        },
+        {
+          id: '618309',
+          nickname: '桃子汽水',
+          avatar: PRESET_AVATARS[8],
+          invitedBy: '好友 @苏打气泡 (ID: 556712) 邀请',
+          note: '我是苏打的大学室友，喜欢玩你画我猜~',
+          time: '15分钟前'
+        }
+      ],
+      // 可通过虚拟号搜索到的外部用户
+      directoryUsers: [
+        { id: '778899', nickname: '白日梦想家', avatar: PRESET_AVATARS[5], bio: '深夜桌游爱好者' },
+        { id: '661204', nickname: '晚风轻踩', avatar: PRESET_AVATARS[9], bio: '画画虽然抽象但猜词很快' }
+      ],
+      // 聊天会话数据
+      chats: [
+        {
+          id: 'squad-room',
+          title: '爱玩不玩 · 4人小队',
+          subtitle: '阿泽: 今晚谁是卧底谁输谁发红包！',
+          avatar: PRESET_AVATARS[1],
+          isGroup: true,
+          unread: 2,
+          time: '18:24',
+          messages: [
+            { senderId: '102938', senderName: '阿泽', avatar: PRESET_AVATARS[1], text: '我朋友 @夏目漱石猫 刚刚申请入驻「爱玩不玩」了，星野你快在审批中心点个同意！', time: '18:20' },
+            { senderId: '556712', senderName: '苏打气泡', avatar: PRESET_AVATARS[2], text: '哈哈主理人把关超严格，必须经过星野同意才能进咱们爱玩不玩4人小队👍', time: '18:22' },
+            { senderId: '339041', senderName: '陈屿', avatar: PRESET_AVATARS[3], text: '四人齐了随时开一局谁是卧底、数字炸弹或者你画我猜！', time: '18:24' }
+          ]
+        },
+        {
+          id: '102938',
+          title: '阿泽',
+          subtitle: '来一局双人五子棋吗？',
+          avatar: PRESET_AVATARS[1],
+          isGroup: false,
+          unread: 0,
+          time: '17:50',
+          messages: [
+            { senderId: '102938', senderName: '阿泽', avatar: PRESET_AVATARS[1], text: '在吗？刚看到游戏厅上了双人五子棋和默契快问快答，咱俩先测测默契度！', time: '17:50' }
+          ]
+        },
+        {
+          id: '556712',
+          title: '苏打气泡',
+          subtitle: '刚才那局你画我猜笑死我了',
+          avatar: PRESET_AVATARS[2],
+          isGroup: false,
+          unread: 0,
+          time: '昨天',
+          messages: [
+            { senderId: '556712', senderName: '苏打气泡', avatar: PRESET_AVATARS[2], text: '下次我画画绝对不抽象了哈哈哈哈', time: '昨天' }
+          ]
+        }
+      ],
+      activeChatId: null,
+      // Ins 风格朋友圈动态
+      moments: [
+        {
+          id: 'm1',
+          authorId: '102938',
+          authorName: '阿泽',
+          authorAvatar: PRESET_AVATARS[1],
+          location: 'Tokyo · 涩谷咖啡馆',
+          time: '28分钟前',
+          text: '周末下午茶☕️ 坐等晚上四个人齐了开一局数字炸弹，谁踩雷谁请喝奶茶！',
+          image: PRESET_FEED_PHOTOS[1],
+          likes: ['主理人·星野', '苏打气泡', '陈屿'],
+          likedByMe: true,
+          comments: [
+            { user: '苏打气泡', text: '算我一个！今晚绝对不踩雷' },
+            { user: '主理人·星野', text: '已批准新朋友入驻，随时开局！' }
+          ]
+        },
+        {
+          id: 'm2',
+          authorId: '556712',
+          authorName: '苏打气泡',
+          authorAvatar: PRESET_AVATARS[2],
+          location: '私密圈子限定',
+          time: '2小时前',
+          text: '只有经过主理人同意才能看到的私密动态，这种小圈子安全感满分✨',
+          image: PRESET_FEED_PHOTOS[3],
+          likes: ['主理人·星野', '阿泽'],
+          likedByMe: true,
+          comments: []
+        }
+      ],
+      selectedPostPhoto: null
+    };
+
+    // ==================== 4. 工具函数 ====================
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      const text = document.getElementById('toast-text');
+      text.textContent = msg;
+      box.classList.remove('opacity-0', 'translate-y-[-10px]');
+      box.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        box.classList.add('opacity-0', 'translate-y-[-10px]');
+        box.classList.remove('opacity-100', 'translate-y-0');
+      }, 2400);
+    }
+
+    function generateSixDigitID() {
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // ==================== 5. 视角切换（主理人 vs 新访客申请视角） ====================
+    function switchViewRole(role) {
+      appState.viewRole = role;
+      const ownerBtn = document.getElementById('role-owner-btn');
+      const guestBtn = document.getElementById('role-guest-btn');
+      const mainView = document.getElementById('main-app-view');
+      const guestView = document.getElementById('guest-gate-view');
+
+      if (role === 'owner') {
+        ownerBtn.className = 'px-2.5 py-0.5 rounded-full font-semibold bg-white text-neutral-900 shadow-xs transition';
+        guestBtn.className = 'px-2.5 py-0.5 rounded-full font-medium text-neutral-600 transition';
+        mainView.classList.remove('hidden');
+        guestView.classList.add('hidden');
+        renderAll();
+      } else {
+        guestBtn.className = 'px-2.5 py-0.5 rounded-full font-semibold bg-white text-neutral-900 shadow-xs transition';
+        ownerBtn.className = 'px-2.5 py-0.5 rounded-full font-medium text-neutral-600 transition';
+        mainView.classList.add('hidden');
+        guestView.classList.remove('hidden');
+        renderGuestGate();
+      }
+    }
+
+    // ==================== 6. 访客门禁申请逻辑 ====================
+    function renderGuestGate() {
+      const picker = document.getElementById('guest-avatar-picker');
+      picker.innerHTML = PRESET_AVATARS.slice(0, 5).map(url => `
+        <button onclick="selectGuestAvatar('${url}')" class="w-12 h-12 rounded-full p-0.5 border-2 ${appState.guestDraft.avatar === url ? 'border-pink-600 scale-105' : 'border-transparent'} transition">
+          <img src="${url}" class="w-full h-full object-cover rounded-full" alt="">
+        </button>
+      `).join('');
+
+      document.getElementById('guest-gen-id').textContent = '#' + appState.guestDraft.id;
+
+      // 检查是否已被主理人批准
+      const isAlreadyApproved = appState.approvedMembers.some(m => m.id === appState.guestDraft.id);
+      if (isAlreadyApproved) {
+        showToast('🎉 主理人已批准你的申请！欢迎进入小筑');
+        switchViewRole('owner');
+        return;
+      }
+
+      if (appState.guestDraft.submitted) {
+        document.getElementById('guest-form-card').classList.add('hidden');
+        document.getElementById('guest-waiting-card').classList.remove('hidden');
+        document.getElementById('guest-wait-avatar').src = appState.guestDraft.avatar;
+        document.getElementById('guest-wait-name').textContent = appState.guestDraft.nickname;
+        document.getElementById('guest-wait-id').textContent = '虚拟号: #' + appState.guestDraft.id;
+        document.getElementById('guest-wait-inviter').textContent = appState.guestDraft.inviter;
+      } else {
+        document.getElementById('guest-form-card').classList.remove('hidden');
+        document.getElementById('guest-waiting-card').classList.add('hidden');
+      }
+    }
+
+    function selectGuestAvatar(url) {
+      appState.guestDraft.avatar = url;
+      renderGuestGate();
+    }
+
+    function regenerateGuestID() {
+      appState.guestDraft.id = generateSixDigitID();
+      document.getElementById('guest-gen-id').textContent = '#' + appState.guestDraft.id;
+      showToast('已分配新虚拟号 #' + appState.guestDraft.id);
+    }
+
+    function submitGuestApplication() {
+      const nick = document.getElementById('guest-nickname-input').value.trim() || '神秘访客';
+      const inviter = document.getElementById('guest-inviter-select').value;
+      const note = document.getElementById('guest-note-input').value.trim() || '请求加入四人小筑';
+
+      appState.guestDraft.nickname = nick;
+      appState.guestDraft.inviter = inviter;
+      appState.guestDraft.note = note;
+      appState.guestDraft.submitted = true;
+
+      // 加入主理人的待审批列表
+      const exists = appState.pendingRequests.some(r => r.id === appState.guestDraft.id);
+      if (!exists) {
+        appState.pendingRequests.unshift({
+          id: appState.guestDraft.id,
+          nickname: nick,
+          avatar: appState.guestDraft.avatar,
+          invitedBy: inviter,
+          note: note,
+          time: '刚刚'
+        });
+      }
+
+      renderGuestGate();
+      updatePendingBadges();
+      showToast('已发送入驻申请，等待主理人审批');
+    }
+
+    function resetGuestApplication() {
+      appState.guestDraft.submitted = false;
+      renderGuestGate();
+    }
+
+    // ==================== 7. 底部导航栏切换 ====================
+    function switchTab(tabName) {
+      const tabs = ['chats', 'feed', 'games', 'profile'];
+      const titles = {
+        chats: '爱玩不玩 · 聊天',
+        feed: '爱玩不玩 · 朋友圈',
+        games: '爱玩不玩 · 游戏',
+        profile: '爱玩不玩 · 我的'
+      };
+      document.getElementById('header-title').textContent = titles[tabName];
+
+      tabs.forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (t === tabName) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.classList.remove('text-neutral-400');
+          btn.classList.add('text-neutral-900');
+        } else {
+          btn.classList.add('text-neutral-400');
+          btn.classList.remove('text-neutral-900');
+        }
+      });
+
+      if (tabName === 'games') renderPartySeats();
+      if (tabName === 'feed') renderMoments();
+      if (tabName === 'profile') renderProfileAndApprovals();
+    }
+
+    function scrollToApproval() {
+      setTimeout(() => {
+        const el = document.getElementById('owner-approval-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+
+    // ==================== 8. 渲染聊天列表与对话室 ====================
+    function renderChats() {
+      // 渲染顶部在线成员 Story 栏
+      const storyBar = document.getElementById('story-friends-bar');
+      document.getElementById('approved-count-label').textContent = `${appState.approvedMembers.length} 人已入驻`;
+
+      storyBar.innerHTML = appState.approvedMembers.map(m => `
+        <div onclick="${m.isOwner ? "switchTab('profile')" : `openPrivateChat('${m.id}')`}" class="flex flex-col items-center gap-1 shrink-0 cursor-pointer group">
+          <div class="w-14 h-14 rounded-full ins-ring group-active:scale-95 transition">
+            <img src="${m.avatar}" class="w-full h-full object-cover rounded-full bg-white p-0.5" alt="">
+          </div>
+          <span class="text-[11px] font-medium text-neutral-800 max-w-[60px] truncate">${m.isOwner ? '我' : m.nickname}</span>
+        </div>
+      `).join('');
+
+      // 渲染会话列表
+      const listContainer = document.getElementById('chat-list-container');
+      listContainer.innerHTML = appState.chats.map(c => `
+        <div onclick="openChatRoom('${c.id}')" class="px-4 py-3.5 flex items-center gap-3 hover:bg-[#FAFAFA] active:bg-neutral-100 cursor-pointer transition">
+          <div class="relative shrink-0">
+            <img src="${c.avatar}" class="w-12 h-12 rounded-full object-cover border border-[#EFEFEF]" alt="">
+            ${c.isGroup ? '<span class="absolute -bottom-0.5 -right-0.5 px-1.5 py-0.2 rounded-full bg-neutral-900 text-white text-[9px] font-bold">4人</span>' : ''}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <h4 class="text-sm font-bold text-neutral-900 truncate">${c.title}</h4>
+              <span class="text-[11px] text-neutral-400">${c.time}</span>
+            </div>
+            <p class="text-xs text-neutral-500 truncate mt-0.5">${c.subtitle}</p>
+          </div>
+          ${c.unread > 0 ? `<span class="w-5 h-5 rounded-full bg-pink-600 text-white text-[10px] font-bold flex items-center justify-center">${c.unread}</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function openPrivateChat(memberId) {
+      let chat = appState.chats.find(c => c.id === memberId);
+      if (!chat) {
+        const member = appState.approvedMembers.find(m => m.id === memberId);
+        if (!member) return;
+        chat = {
+          id: member.id,
+          title: member.nickname,
+          subtitle: '已通过主理人审批，开始聊天吧',
+          avatar: member.avatar,
+          isGroup: false,
+          unread: 0,
+          time: '刚刚',
+          messages: [
+            { senderId: member.id, senderName: member.nickname, avatar: member.avatar, text: `哈喽！感谢主理人批准我加入，我的虚拟号是 #${member.id}`, time: '刚刚' }
+          ]
+        };
+        appState.chats.unshift(chat);
+      }
+      openChatRoom(chat.id);
+    }
+
+    function openChatRoom(chatId) {
+      appState.activeChatId = chatId;
+      const chat = appState.chats.find(c => c.id === chatId);
+      if (!chat) return;
+      chat.unread = 0;
+      renderChats();
+
+      document.getElementById('active-chat-avatar').src = chat.avatar;
+      document.getElementById('active-chat-title').textContent = chat.title;
+      document.getElementById('active-chat-subtitle').textContent = chat.isGroup
+        ? `当前圈内共 ${appState.approvedMembers.length} 人 · 严格审批保护中`
+        : `虚拟号 #${chat.id} · 已验证好友`;
+
+      renderChatMessages();
+      document.getElementById('chat-room-drawer').classList.remove('hidden');
+    }
+
+    function closeChatRoom() {
+      appState.activeChatId = null;
+      document.getElementById('chat-room-drawer').classList.add('hidden');
+    }
+
+    function renderChatMessages() {
+      const chat = appState.chats.find(c => c.id === appState.activeChatId);
+      if (!chat) return;
+      const box = document.getElementById('chat-messages-box');
+      box.innerHTML = chat.messages.map(m => {
+        const isMe = m.senderId === appState.currentUser.id;
+        if (m.isGameCard) {
+          return `
+            <div class="flex justify-center my-2">
+              <div onclick="closeChatRoom(); switchTab('games');" class="w-64 bg-white border border-pink-200 rounded-2xl p-3.5 shadow-xs cursor-pointer hover:border-pink-400 transition">
+                <div class="flex items-center gap-2 text-pink-600 text-xs font-bold">
+                  <span>🎮</span> <span>四人派对游戏邀请</span>
+                </div>
+                <p class="text-xs text-neutral-700 mt-1">${m.text}</p>
+                <div class="mt-2.5 py-1.5 rounded-xl ins-gradient-btn text-white text-center text-xs font-semibold">
+                  点击进入游戏大厅 →
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        return `
+          <div class="flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}">
+            <img src="${isMe ? appState.currentUser.avatar : m.avatar}" class="w-7 h-7 rounded-full object-cover shrink-0" alt="">
+            <div class="max-w-[72%]">
+              ${!isMe && chat.isGroup ? `<span class="block text-[10px] text-neutral-400 mb-0.5 ml-1">${m.senderName}</span>` : ''}
+              <div class="px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${isMe ? 'bg-neutral-900 text-white rounded-br-xs' : 'bg-white border border-[#EFEFEF] text-neutral-800 rounded-bl-xs'}">
+                ${m.text}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text || !appState.activeChatId) return;
+
+      const chat = appState.chats.find(c => c.id === appState.activeChatId);
+      chat.messages.push({
+        senderId: appState.currentUser.id,
+        senderName: appState.currentUser.nickname,
+        avatar: appState.currentUser.avatar,
+        text,
+        time: '刚刚'
+      });
+      chat.subtitle = '我: ' + text;
+      chat.time = '刚刚';
+      input.value = '';
+      renderChatMessages();
+      renderChats();
+
+      // 好友智能趣味回复
+      setTimeout(() => {
+        if (!appState.activeChatId) return;
+        const replies = [
+          '收到收到！马上就位 🙌',
+          '哈哈哈哈没问题，今晚四个人一起嗨！',
+          '走起，我去游戏厅占个座～'
+        ];
+        const responder = appState.approvedMembers[1] || appState.approvedMembers[0];
+        chat.messages.push({
+          senderId: responder.id,
+          senderName: responder.nickname,
+          avatar: responder.avatar,
+          text: replies[Math.floor(Math.random() * replies.length)],
+          time: '刚刚'
+        });
+        chat.subtitle = `${responder.nickname}: 收到收到！`;
+        renderChatMessages();
+        renderChats();
+      }, 900);
+    }
+
+    function quickSendEmoji(text) {
+      document.getElementById('chat-input').value = text;
+      sendChatMessage();
+    }
+
+    function sendGameInviteInChat() {
+      const chat = appState.chats.find(c => c.id === appState.activeChatId);
+      if (!chat) return;
+      chat.messages.push({
+        senderId: appState.currentUser.id,
+        isGameCard: true,
+        text: `${appState.currentUser.nickname} 发起了「四人派对局」邀请，快来凑齐4人！`
+      });
+      renderChatMessages();
+      showToast('已发送四人游戏邀请卡片');
+    }
+
+    // ==================== 9. Ins 风格朋友圈动态渲染与交互 ====================
+    function renderMoments() {
+      document.getElementById('feed-my-avatar').src = appState.currentUser.avatar;
+      const container = document.getElementById('moments-list');
+
+      container.innerHTML = appState.moments.map(m => `
+        <article class="bg-white border-y border-[#EFEFEF] pb-3.5">
+          <!-- 动态头部 -->
+          <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-full ins-ring-subtle">
+                <img src="${m.authorAvatar}" class="w-full h-full object-cover rounded-full bg-white p-0.5" alt="">
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-neutral-900">${m.authorName}</h4>
+                <p class="text-[10px] text-neutral-400">${m.location} · ${m.time}</p>
+              </div>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#FAFAFA] border border-[#EFEFEF] text-neutral-400">🔒 仅圈内</span>
+          </div>
+
+          <!-- 配图（支持双击点赞红心爆发动画） -->
+          ${m.image ? `
+            <div ondblclick="doubleTapLike('${m.id}')" class="relative w-full aspect-[4/3] bg-neutral-100 overflow-hidden select-none cursor-pointer">
+              <img src="${m.image}" class="w-full h-full object-cover" alt="">
+              <div id="heart-anim-${m.id}" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span class="text-6xl drop-shadow-lg heart-burst">❤️</span>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- 交互按钮栏 -->
+          <div class="px-4 pt-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <button onclick="toggleLikeMoment('${m.id}')" class="active:scale-125 transition">
+                ${m.likedByMe
+                  ? '<svg class="w-6 h-6 text-rose-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
+                  : '<svg class="w-6 h-6 text-neutral-800" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>'
+                }
+              </button>
+              <button onclick="focusCommentInput('${m.id}')" class="text-neutral-800 active:scale-110 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              </button>
+            </div>
+            <span class="text-[11px] text-neutral-400">${m.likes.length} 次赞</span>
+          </div>
+
+          <!-- 文案与点赞列表 -->
+          <div class="px-4 pt-2 space-y-1.5">
+            ${m.likes.length > 0 ? `<p class="text-[11px] font-semibold text-neutral-800">❤️ ${m.likes.join('、')}</p>` : ''}
+            <p class="text-xs text-neutral-800 leading-relaxed">
+              <strong class="font-bold mr-1">${m.authorName}</strong>${m.text}
+            </p>
+
+            <!-- 评论区 -->
+            <div class="space-y-1 pt-1">
+              ${m.comments.map(c => `
+                <p class="text-xs text-neutral-600"><strong class="text-neutral-900 mr-1">${c.user}:</strong>${c.text}</p>
+              `).join('')}
+            </div>
+
+            <!-- 快捷发表评论 -->
+            <div class="flex items-center gap-2 pt-1.5">
+              <input id="comment-input-${m.id}" type="text" placeholder="添加评论..." onkeypress="if(event.key==='Enter') postMomentComment('${m.id}')" class="flex-1 text-xs bg-[#FAFAFA] border border-[#EFEFEF] rounded-full px-3 py-1.5 focus:outline-none focus:border-neutral-400" />
+              <button onclick="postMomentComment('${m.id}')" class="text-xs font-semibold text-pink-600 px-2">发送</button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function toggleLikeMoment(id) {
+      const m = appState.moments.find(item => item.id === id);
+      if (!m) return;
+      m.likedByMe = !m.likedByMe;
+      const myName = appState.currentUser.nickname;
+      if (m.likedByMe) {
+        if (!m.likes.includes(myName)) m.likes.unshift(myName);
+      } else {
+        m.likes = m.likes.filter(n => n !== myName);
+      }
+      renderMoments();
+    }
+
+    function doubleTapLike(id) {
+      const m = appState.moments.find(item => item.id === id);
+      if (m && !m.likedByMe) {
+        toggleLikeMoment(id);
+      }
+      setTimeout(() => {
+        const heart = document.getElementById('heart-anim-' + id);
+        if (heart) {
+          heart.classList.remove('hidden');
+          setTimeout(() => heart.classList.add('hidden'), 850);
+        }
+      }, 30);
+    }
+
+    function focusCommentInput(id) {
+      const el = document.getElementById('comment-input-' + id);
+      if (el) el.focus();
+    }
+
+    function postMomentComment(id) {
+      const input = document.getElementById('comment-input-' + id);
+      const text = input.value.trim();
+      if (!text) return;
+      const m = appState.moments.find(item => item.id === id);
+      m.comments.push({ user: appState.currentUser.nickname, text });
+      renderMoments();
+      showToast('评论已发布');
+    }
+
+    function openNewPostModal() {
+      appState.selectedPostPhoto = PRESET_FEED_PHOTOS[0];
+      const picker = document.getElementById('post-photo-picker');
+      picker.innerHTML = PRESET_FEED_PHOTOS.map(url => `
+        <button onclick="selectPostPhoto('${url}')" class="aspect-square rounded-xl overflow-hidden border-2 ${appState.selectedPostPhoto === url ? 'border-pink-600' : 'border-transparent'}">
+          <img src="${url}" class="w-full h-full object-cover" alt="">
+        </button>
+      `).join('');
+      document.getElementById('new-post-modal').classList.remove('hidden');
+    }
+
+    function selectPostPhoto(url) {
+      appState.selectedPostPhoto = url;
+      const picker = document.getElementById('post-photo-picker');
+      picker.innerHTML = PRESET_FEED_PHOTOS.map(u => `
+        <button onclick="selectPostPhoto('${u}')" class="aspect-square rounded-xl overflow-hidden border-2 ${appState.selectedPostPhoto === u ? 'border-pink-600' : 'border-transparent'}">
+          <img src="${u}" class="w-full h-full object-cover" alt="">
+        </button>
+      `).join('');
+    }
+
+    function publishMoment() {
+      const text = document.getElementById('post-content-input').value.trim();
+      if (!text) {
+        showToast('请输入动态内容');
+        return;
+      }
+      appState.moments.unshift({
+        id: 'm' + Date.now(),
+        authorId: appState.currentUser.id,
+        authorName: appState.currentUser.nickname,
+        authorAvatar: appState.currentUser.avatar,
+        location: '爱玩不玩 · 4人小队',
+        time: '刚刚',
+        text,
+        image: appState.selectedPostPhoto,
+        likes: [],
+        likedByMe: false,
+        comments: []
+      });
+      document.getElementById('post-content-input').value = '';
+      closeModal('new-post-modal');
+      renderMoments();
+      showToast('动态已发布，仅圈内成员可见 ✨');
+    }
+
+    // ==================== 10. 个人主页、虚拟号与主理人审批中心 ====================
+    function updatePendingBadges() {
+      const count = appState.pendingRequests.length;
+      const headerBadge = document.getElementById('header-pending-badge');
+      const navDot = document.getElementById('nav-pending-dot');
+      const statPending = document.getElementById('stat-pending-count');
+
+      if (count > 0) {
+        headerBadge.textContent = count;
+        headerBadge.classList.remove('hidden');
+        navDot.classList.remove('hidden');
+      } else {
+        headerBadge.classList.add('hidden');
+        navDot.classList.add('hidden');
+      }
+      if (statPending) statPending.textContent = count;
+    }
+
+    function renderProfileAndApprovals() {
+      document.getElementById('profile-avatar').src = appState.currentUser.avatar;
+      document.getElementById('profile-nickname').textContent = appState.currentUser.nickname;
+      document.getElementById('profile-virtual-id').textContent = '#' + appState.currentUser.id;
+      document.getElementById('profile-bio').textContent = appState.currentUser.bio;
+      document.getElementById('stat-friends-count').textContent = appState.approvedMembers.length;
+      updatePendingBadges();
+
+      // 渲染待审批列表
+      const pendingContainer = document.getElementById('pending-requests-list');
+      if (appState.pendingRequests.length === 0) {
+        pendingContainer.innerHTML = `
+          <div class="py-6 text-center text-xs text-neutral-400">
+            暂无待审核的入驻申请 ✨<br>
+            <span class="text-[11px]">你可以点击顶部「新访客申请视角」模拟好友的朋友申请加入</span>
+          </div>
+        `;
+      } else {
+        pendingContainer.innerHTML = appState.pendingRequests.map(req => `
+          <div class="py-3.5 space-y-2.5">
+            <div class="flex items-start justify-between gap-2.5">
+              <div class="flex items-center gap-2.5">
+                <img src="${req.avatar}" class="w-11 h-11 rounded-full object-cover border border-[#EFEFEF]" alt="">
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h4 class="text-xs font-bold text-neutral-900">${req.nickname}</h4>
+                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600">#${req.id}</span>
+                  </div>
+                  <p class="text-[11px] text-pink-600 font-medium mt-0.5">🔗 ${req.invitedBy}</p>
+                </div>
+              </div>
+              <span class="text-[10px] text-neutral-400">${req.time}</span>
+            </div>
+            <div class="px-3 py-2 rounded-xl bg-[#FAFAFA] text-[11px] text-neutral-600">
+              验证备注：“${req.note}”
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="approveMember('${req.id}')" class="flex-1 py-2 rounded-xl ins-gradient-btn text-white text-xs font-semibold shadow-xs active:scale-95 transition">
+                ✓ 同意进入小筑
+              </button>
+              <button onclick="rejectMember('${req.id}')" class="px-4 py-2 rounded-xl bg-neutral-100 text-neutral-600 text-xs font-medium hover:bg-neutral-200 transition">
+                拒绝
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 渲染已批准成员列表
+      const membersContainer = document.getElementById('approved-members-list');
+      membersContainer.innerHTML = appState.approvedMembers.map(m => `
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <img src="${m.avatar}" class="w-10 h-10 rounded-full object-cover border border-[#EFEFEF]" alt="">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-neutral-900">${m.nickname}</span>
+                <span class="text-[10px] font-mono text-neutral-400">#${m.id}</span>
+              </div>
+              <p class="text-[11px] text-neutral-400">${m.invitedBy}</p>
+            </div>
+          </div>
+          ${m.isOwner
+            ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">主理人</span>'
+            : `<button onclick="removeApprovedMember('${m.id}')" class="text-[11px] text-neutral-400 hover:text-rose-600 px-2 py-1">移出</button>`
+          }
+        </div>
+      `).join('');
+    }
+
+    function approveMember(reqId) {
+      const idx = appState.pendingRequests.findIndex(r => r.id === reqId);
+      if (idx === -1) return;
+      const req = appState.pendingRequests[idx];
+      appState.pendingRequests.splice(idx, 1);
+
+      appState.approvedMembers.push({
+        id: req.id,
+        nickname: req.nickname,
+        avatar: req.avatar,
+        status: '刚刚加入',
+        invitedBy: req.invitedBy + '（已批准）',
+        isOwner: false
+      });
+
+      // 自动在爱玩不玩 4人小队播报欢迎消息
+      const squad = appState.chats.find(c => c.id === 'squad-room');
+      if (squad) {
+        squad.title = `爱玩不玩 · 4人小队 (${appState.approvedMembers.length})`;
+        squad.messages.push({
+          senderId: req.id,
+          senderName: req.nickname,
+          avatar: req.avatar,
+          text: `🎉 主理人已同意我的入驻申请！大家好，我是 ${req.nickname} (#${req.id})`,
+          time: '刚刚'
+        });
+        squad.subtitle = `${req.nickname} 已通过主理人审批加入`;
+      }
+    function publishMoment() {
+      const text = document.getElementById('post-content-input').value.trim();
+      if (!text) {
+        showToast('请输入动态内容');
+        return;
+      }
+      appState.moments.unshift({
+        id: 'm' + Date.now(),
+        authorId: appState.currentUser.id,
+        authorName: appState.currentUser.nickname,
+        authorAvatar: appState.currentUser.avatar,
+        location: 'POKE 贴贴小筑',
+        time: '刚刚',
+        text,
+        image: appState.selectedPostPhoto,
+        likes: [],
+        likedByMe: false,
+        comments: []
+      });
+      document.getElementById('post-content-input').value = '';
+      closeModal('new-post-modal');
+      renderMoments();
+      showToast('动态已发布，仅圈内成员可见 ✨');
+    }
+
+    function rejectMember(reqId) {
+      const idx = appState.pendingRequests.findIndex(r => r.id === reqId);
+      if (idx === -1) return;
+      const req = appState.pendingRequests[idx];
+      appState.pendingRequests.splice(idx, 1);
+      if (appState.guestDraft.id === reqId) {
+        appState.guestDraft.submitted = false;
+      }
+      renderAll();
+      showToast(`已拒绝 ${req.nickname} 的入驻申请`);
+    }
+
+    function removeApprovedMember(memberId) {
+      appState.approvedMembers = appState.approvedMembers.filter(m => m.id !== memberId);
+      renderAll();
+      showToast('已将该成员移出空间');
+    }
+
+    function toggleStrictMode() {
+      appState.strictApprovalMode = !appState.strictApprovalMode;
+      const btn = document.getElementById('strict-mode-toggle');
+      if (appState.strictApprovalMode) {
+        btn.className = 'px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-semibold flex items-center gap-1';
+        btn.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>严格审批: 开</span>';
+        showToast('已开启：全员及好友的朋友均需主理人同意');
+      } else {
+        btn.className = 'px-2.5 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-600 text-[11px] font-semibold flex items-center gap-1';
+        btn.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-neutral-400"></span><span>严格审批: 关</span>';
+        showToast('已关闭：已批准好友可直接拉人进入');
+      }
+    }
+
+    // ==================== 11. 编辑资料、虚拟号复制与添加好友 ====================
+    function copyVirtualID() {
+      const temp = document.createElement('input');
+      temp.value = appState.currentUser.id;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      showToast(`已复制虚拟号 #${appState.currentUser.id}`);
+    }
+
+    function openEditProfileModal() {
+      document.getElementById('edit-preview-avatar').src = appState.currentUser.avatar;
+      document.getElementById('edit-nickname-input').value = appState.currentUser.nickname;
+      document.getElementById('edit-bio-input').value = appState.currentUser.bio;
+      document.getElementById('edit-id-display').textContent = '#' + appState.currentUser.id;
+
+      const presetsBox = document.getElementById('edit-avatar-presets');
+      presetsBox.innerHTML = PRESET_AVATARS.map(url => `
+        <button onclick="previewSelectedAvatar('${url}')" class="w-12 h-12 rounded-full overflow-hidden border-2 border-transparent hover:border-pink-500 transition">
+          <img src="${url}" class="w-full h-full object-cover" alt="">
+        </button>
+      `).join('');
+
+      document.getElementById('edit-profile-modal').classList.remove('hidden');
+    }
+
+    function previewSelectedAvatar(url) {
+      document.getElementById('edit-preview-avatar').src = url;
+    }
+
+    function handleAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('edit-preview-avatar').src = e.target.result;
+        showToast('已加载本地图片头像');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function randomizeMyVirtualID() {
+      const newId = generateSixDigitID();
+      document.getElementById('edit-id-display').textContent = '#' + newId;
+    }
+
+    function saveProfileChanges() {
+      const newAvatar = document.getElementById('edit-preview-avatar').src;
+      const newNick = document.getElementById('edit-nickname-input').value.trim() || appState.currentUser.nickname;
+      const newBio = document.getElementById('edit-bio-input').value.trim();
+      const newId = document.getElementById('edit-id-display').textContent.replace('#', '');
+
+      const oldId = appState.currentUser.id;
+      appState.currentUser.avatar = newAvatar;
+      appState.currentUser.nickname = newNick;
+      appState.currentUser.bio = newBio;
+      appState.currentUser.id = newId;
+
+      const meInMembers = appState.approvedMembers.find(m => m.id === oldId || m.isOwner);
+      if (meInMembers) {
+        meInMembers.id = newId;
+        meInMembers.nickname = newNick;
+        meInMembers.avatar = newAvatar;
+      }
+
+      closeModal('edit-profile-modal');
+      renderAll();
+      showToast('虚拟身份资料已更新 ✨');
+    }
+
+    function openInviteCardModal() {
+      document.getElementById('invite-card-avatar').src = appState.currentUser.avatar;
+      document.getElementById('invite-card-owner').textContent = `${appState.currentUser.nickname} 邀请你加入`;
+      document.getElementById('invite-card-id').textContent = `主理人虚拟号: #${appState.currentUser.id}`;
+      document.getElementById('invite-card-modal').classList.remove('hidden');
+    }
+
+    function copyInviteText() {
+      const text = `【爱玩不玩】主理人 ${appState.currentUser.nickname} (虚拟号 #${appState.currentUser.id}) 邀请你加入四人私密社交派对！进入后填写邀请人并等待主理人审批放行～`;
+      const temp = document.createElement('input');
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      closeModal('invite-card-modal');
+      showToast('邀请口令已复制，快发给朋友吧！');
+    }
+
+    function openAddFriendModal() {
+      document.getElementById('search-id-input').value = '';
+      document.getElementById('search-result-box').classList.add('hidden');
+      document.getElementById('add-friend-modal').classList.remove('hidden');
+    }
+
+    function fillSearchID(id) {
+      document.getElementById('search-id-input').value = id;
+      searchVirtualUser();
+    }
+
+    function searchVirtualUser() {
+      const query = document.getElementById('search-id-input').value.trim().replace('#', '');
+      const box = document.getElementById('search-result-box');
+      if (!query) return;
+
+      const found = appState.directoryUsers.find(u => u.id === query);
+      box.classList.remove('hidden');
+
+      if (!found) {
+        box.innerHTML = `<span class="text-xs text-neutral-500">未找到虚拟号 #${query}，可试试 778899 或 661204</span>`;
+        return;
+      }
+
+      const alreadyIn = appState.approvedMembers.some(m => m.id === found.id);
+      box.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <img src="${found.avatar}" class="w-10 h-10 rounded-full object-cover" alt="">
+          <div>
+            <h4 class="text-xs font-bold text-neutral-900">${found.nickname} <span class="font-mono text-neutral-400">#${found.id}</span></h4>
+            <p class="text-[11px] text-neutral-500">${found.bio}</p>
+          </div>
+        </div>
+        ${alreadyIn
+          ? '<span class="text-xs text-emerald-600 font-semibold">已在圈内</span>'
+          : `<button onclick="inviteFoundUser('${found.id}')" class="px-3 py-1.5 rounded-xl ins-gradient-btn text-white text-xs font-semibold">直接拉入</button>`
+        }
+      `;
+    }
+
+    function inviteFoundUser(userId) {
+      const user = appState.directoryUsers.find(u => u.id === userId);
+      if (!user) return;
+      appState.approvedMembers.push({
+        id: user.id,
+        nickname: user.nickname,
+        avatar: user.avatar,
+        status: '刚刚加入',
+        invitedBy: '主理人搜索虚拟号添加',
+        isOwner: false
+      });
+      closeModal('add-friend-modal');
+      renderAll();
+      showToast(`已将 ${user.nickname} (#${user.id}) 加入圈子！`);
+    }
+
+    // ==================== 12. 游戏大厅与三款四人派对小游戏完整逻辑 ====================
+    function getFourPlayers() {
+      // 确保永远凑齐 4 个座位（不足4人时自动用智能好友补位）
+      const seats = [...appState.approvedMembers.slice(0, 4)];
+      const fallbackBots = [
+        { id: '9001', nickname: 'AI小助手·波波', avatar: PRESET_AVATARS[7], isOwner: false },
+        { id: '9002', nickname: 'AI小助手·米娅', avatar: PRESET_AVATARS[8], isOwner: false }
+      ];
+      let idx = 0;
+      while (seats.length < 4) {
+        seats.push(fallbackBots[idx++]);
+      }
+      return seats;
+    }
+
+    function renderPartySeats() {
+      const seats = getFourPlayers();
+      const grid = document.getElementById('party-seats-grid');
+      grid.innerHTML = seats.map((p, i) => `
+        <div class="bg-[#FAFAFA] border border-[#EFEFEF] rounded-2xl p-2 flex flex-col items-center">
+          <div class="relative">
+            <img src="${p.avatar}" class="w-11 h-11 rounded-full object-cover border border-white shadow-xs" alt="">
+            <span class="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-neutral-900 text-white text-[9px] font-bold flex items-center justify-center">${i + 1}</span>
+          </div>
+          <span class="text-[11px] font-semibold text-neutral-800 truncate w-full mt-1.5">${i === 0 ? '我' : p.nickname}</span>
+          <span class="text-[9px] text-emerald-600 font-medium">已就座</span>
+        </div>
+      `).join('');
+    }
+
+    function inviteAllToGame() {
+      const squad = appState.chats.find(c => c.id === 'squad-room');
+      if (squad) {
+        squad.messages.push({
+          senderId: appState.currentUser.id,
+          isGameCard: true,
+          text: `${appState.currentUser.nickname} 在游戏厅呼叫全员：四人派对局随时开玩，速来入座！`
+        });
+      }
+      showToast('📣 已在「爱玩不玩 · 4人小队」发送入座呼叫！');
+    }
+      showToast('📣 已在「贴贴小筑群聊」发送入座呼叫！');
+    }
+
+    // 游戏大厅分段筛选逻辑
+    function filterGames(category) {
+      const cats = ['all', '2p', '4p'];
+      cats.forEach(c => {
+        const btn = document.getElementById('filter-btn-' + c);
+        if (!btn) return;
+        if (c === category) {
+          btn.className = 'py-2 rounded-xl font-bold bg-white text-neutral-900 shadow-xs transition';
+        } else {
+          btn.className = 'py-2 rounded-xl font-medium text-neutral-600 hover:text-neutral-900 transition';
+        }
+      });
+
+      document.querySelectorAll('.game-card-item').forEach(card => {
+        if (category === 'all' || card.dataset.gameCat === category) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function closeGameModal() {
+      document.getElementById('game-stage-modal').classList.add('hidden');
+    }
+
+    function startGame(type) {
+      const modal = document.getElementById('game-stage-modal');
+      const title = document.getElementById('game-stage-title');
+      const badge = document.getElementById('game-stage-badge');
+      modal.classList.remove('hidden');
+
+      if (type === 'gomoku') {
+        title.textContent = '⚫ 双人五子棋 · Gomoku';
+        badge.textContent = '2人专属局';
+        initGomokuGame();
+      } else if (type === 'syncquiz') {
+        title.textContent = '💞 默契快问快答 · Sync';
+        badge.textContent = '2人灵魂测试';
+        initSyncQuizGame();
+      } else if (type === 'undercover') {
+        title.textContent = '🕵️ 谁是卧底 · 4人局';
+        badge.textContent = '4人已就座';
+        initUndercoverGame();
+      } else if (type === 'bomb') {
+        title.textContent = '💣 数字炸弹 · 2-4人局';
+        badge.textContent = '派对已就座';
+        initNumberBombGame();
+      } else if (type === 'draw') {
+        title.textContent = '🎨 灵魂画手 · 你画我猜';
+        badge.textContent = '实时猜词中';
+        initDrawAndGuessGame();
+      }
+    }
+
+    // ---------- 双人游戏 1：双人五子棋 (Gomoku) ----------
+    let gomokuState = null;
+
+    function initGomokuGame(mode = 'ai') {
+      const size = 11; // 11x11 棋盘在手机端触控精准度与视觉最舒适
+      const players = getFourPlayers();
+      gomokuState = {
+        size,
+        board: Array.from({ length: size }, () => Array(size).fill(0)), // 0空 1黑(我) 2白(好友)
+        turn: 1,
+        mode, // 'ai' 智能好友陪练 | 'local' 面对面同屏双人
+        history: [],
+        winner: 0,
+        winLine: [],
+        partner: players[1]
+      };
+      renderGomokuStage();
+    }
+
+    function renderGomokuStage() {
+      const body = document.getElementById('game-stage-body');
+      const s = gomokuState;
+      const winSet = new Set(s.winLine.map(([r, c]) => `${r},${c}`));
+
+      body.innerHTML = `
+        <div class="space-y-3.5">
+          <!-- 对战模式与双方头像状态条 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-3.5 shadow-xs space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex bg-neutral-100 p-0.5 rounded-full text-[11px]">
+                <button onclick="initGomokuGame('ai')" class="px-3 py-1 rounded-full ${s.mode === 'ai' ? 'bg-white font-bold text-neutral-900 shadow-xs' : 'text-neutral-500'}">
+                  🤖 好友陪练 (${s.partner.nickname})
+                </button>
+                <button onclick="initGomokuGame('local')" class="px-3 py-1 rounded-full ${s.mode === 'local' ? 'bg-white font-bold text-neutral-900 shadow-xs' : 'text-neutral-500'}">
+                  👫 同屏双人面对面
+                </button>
+              </div>
+              <button onclick="undoGomokuMove()" class="text-xs font-semibold text-neutral-600 hover:text-neutral-900 px-2 py-1 rounded-lg bg-neutral-100">
+                ↩ 悔棋
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between px-1">
+              <div class="flex items-center gap-2 ${s.turn === 1 && !s.winner ? 'opacity-100 scale-105' : 'opacity-60'} transition">
+                <div class="relative">
+                  <img src="${appState.currentUser.avatar}" class="w-9 h-9 rounded-full object-cover border border-neutral-300" alt="">
+                  <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-neutral-900 border border-white"></span>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-neutral-900">我 (黑棋)</div>
+                  <div class="text-[10px] text-pink-600 font-semibold">${s.turn === 1 && !s.winner ? '正在落子...' : '等待中'}</div>
+                </div>
+              </div>
+
+              <span class="text-xs font-bold text-neutral-300">VS</span>
+
+              <div class="flex items-center gap-2 flex-row-reverse text-right ${s.turn === 2 && !s.winner ? 'opacity-100 scale-105' : 'opacity-60'} transition">
+                <div class="relative">
+                  <img src="${s.partner.avatar}" class="w-9 h-9 rounded-full object-cover border border-neutral-300" alt="">
+                  <span class="absolute -bottom-0.5 -left-0.5 w-3.5 h-3.5 rounded-full bg-white border border-neutral-400"></span>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-neutral-900">${s.mode === 'ai' ? s.partner.nickname : '好友白棋'}</div>
+                  <div class="text-[10px] text-pink-600 font-semibold">${s.turn === 2 && !s.winner ? '正在落子...' : '等待中'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 温润木质/Ins 极简棋盘 -->
+          <div class="bg-[#F3E5D0] border-2 border-[#D8C2A3] rounded-3xl p-2.5 shadow-sm">
+            <div class="grid grid-cols-11 gap-0.5 aspect-square">
+              ${s.board.map((row, r) => row.map((cell, c) => {
+                const isLast = s.history.length > 0 && s.history[s.history.length - 1][0] === r && s.history[s.history.length - 1][1] === c;
+                const isWinCell = winSet.has(`${r},${c}`);
+                return `
+                  <button onclick="handleGomokuClick(${r}, ${c})" class="relative flex items-center justify-center rounded-sm bg-[#E8D3B5]/70 hover:bg-[#DFC49E] active:scale-90 transition">
+                    <span class="w-1 h-1 rounded-full bg-[#B89D78]/60"></span>
+                    ${cell === 1 ? `
+                      <span class="absolute inset-0.5 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-950 shadow-sm ${isWinCell ? 'ring-2 ring-rose-500 scale-110' : ''} flex items-center justify-center">
+                        ${isLast ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>' : ''}
+                      </span>
+                    ` : ''}
+                    ${cell === 2 ? `
+                      <span class="absolute inset-0.5 rounded-full bg-gradient-to-br from-white to-neutral-200 border border-neutral-300 shadow-sm ${isWinCell ? 'ring-2 ring-rose-500 scale-110' : ''} flex items-center justify-center">
+                        ${isLast ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>' : ''}
+                      </span>
+                    ` : ''}
+                  </button>
+                `;
+              }).join('')).join('')}
+            </div>
+          </div>
+
+          <!-- 胜负结果或底部重开按钮 -->
+          ${s.winner ? `
+            <div class="bg-white border border-pink-200 rounded-3xl p-4 text-center space-y-2.5 shadow-sm">
+              <div class="text-2xl">🏆</div>
+              <h4 class="text-sm font-bold text-neutral-900">
+                ${s.winner === 1 ? '黑棋（我）五子连珠获胜！' : `白棋（${s.mode === 'ai' ? s.partner.nickname : '好友'}）五子连珠获胜！`}
+              </h4>
+              <button onclick="initGomokuGame('${s.mode}')" class="w-full py-2.5 rounded-2xl ins-gradient-btn text-white text-xs font-semibold">
+                再来一局
+              </button>
+            </div>
+          ` : `
+            <button onclick="initGomokuGame('${s.mode}')" class="w-full py-2.5 rounded-2xl bg-white border border-[#DBDBDB] text-xs font-semibold text-neutral-700">
+              重新开始本局
+            </button>
+          `}
+        </div>
+      `;
+    }
+
+    function handleGomokuClick(r, c) {
+      const s = gomokuState;
+      if (!s || s.winner || s.board[r][c] !== 0) return;
+      if (s.mode === 'ai' && s.turn === 2) return;
+
+      placeGomokuPiece(r, c, s.turn);
+
+      if (!s.winner && s.mode === 'ai' && s.turn === 2) {
+        setTimeout(() => {
+          if (!gomokuState || gomokuState.winner) return;
+          const [ar, ac] = pickSmartGomokuMove();
+          placeGomokuPiece(ar, ac, 2);
+        }, 420);
+      }
+    }
+
+    function placeGomokuPiece(r, c, player) {
+      const s = gomokuState;
+      s.board[r][c] = player;
+      s.history.push([r, c, player]);
+
+      const winLine = checkGomokuWin(r, c, player);
+      if (winLine) {
+        s.winner = player;
+        s.winLine = winLine;
+        renderGomokuStage();
+        showToast(player === 1 ? '🎉 恭喜你五子连珠获胜！' : '白棋五子连珠获胜！');
+        return;
+      }
+
+      s.turn = player === 1 ? 2 : 1;
+      renderGomokuStage();
+    }
+
+    function checkGomokuWin(r, c, player) {
+      const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+      const size = gomokuState.size;
+      for (const [dr, dc] of dirs) {
+        const line = [[r, c]];
+        for (let step = 1; step < 5; step++) {
+          const nr = r + dr * step, nc = c + dc * step;
+          if (nr >= 0 && nr < size && nc >= 0 && nc < size && gomokuState.board[nr][nc] === player) line.push([nr, nc]);
+          else break;
+        }
+        for (let step = 1; step < 5; step++) {
+          const nr = r - dr * step, nc = c - dc * step;
+          if (nr >= 0 && nr < size && nc >= 0 && nc < size && gomokuState.board[nr][nc] === player) line.push([nr, nc]);
+          else break;
+        }
+        if (line.length >= 5) return line;
+      }
+      return null;
+    }
+
+    function pickSmartGomokuMove() {
+      const s = gomokuState;
+      const size = s.size;
+      let bestScore = -1;
+      let bestMoves = [];
+
+      const evalPoint = (r, c, who) => {
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        let total = 0;
+        for (const [dr, dc] of dirs) {
+          let count = 1;
+          for (let k = 1; k < 5; k++) {
+            const nr = r + dr * k, nc = c + dc * k;
+            if (nr >= 0 && nr < size && nc >= 0 && nc < size && s.board[nr][nc] === who) count++;
+            else break;
+          }
+          for (let k = 1; k < 5; k++) {
+            const nr = r - dr * k, nc = c - dc * k;
+            if (nr >= 0 && nr < size && nc >= 0 && nc < size && s.board[nr][nc] === who) count++;
+            else break;
+          }
+          total += Math.pow(count, 3);
+        }
+        return total;
+      };
+
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (s.board[r][c] !== 0) continue;
+          const centerDist = Math.abs(r - 5) + Math.abs(c - 5);
+          const score = evalPoint(r, c, 2) * 1.1 + evalPoint(r, c, 1) + (10 - centerDist) * 0.2;
+          if (score > bestScore) {
+            bestScore = score;
+            bestMoves = [[r, c]];
+          } else if (Math.abs(score - bestScore) < 0.01) {
+            bestMoves.push([r, c]);
+          }
+        }
+      }
+      return bestMoves[Math.floor(Math.random() * bestMoves.length)] || [5, 5];
+    }
+
+    function undoGomokuMove() {
+      const s = gomokuState;
+      if (!s || s.history.length === 0 || s.winner) {
+        showToast('当前无法悔棋');
+        return;
+      }
+      const steps = s.mode === 'ai' && s.history.length >= 2 ? 2 : 1;
+      for (let i = 0; i < steps; i++) {
+        const last = s.history.pop();
+        if (last) {
+          s.board[last[0]][last[1]] = 0;
+          s.turn = last[2];
+        }
+      }
+      renderGomokuStage();
+    }
+
+    // ---------- 双人游戏 2：默契快问快答 (Sync Quiz) ----------
+    let syncQuizState = null;
+
+    function initSyncQuizGame(mode = 'partner') {
+      const questions = [
+        { q: '周末下午茶，你们更想点哪一杯？', a: '🧋 芝士多肉葡萄/波霸奶茶', b: '☕️ 冰美式/燕麦拿铁' },
+        { q: '突然获得三天假期，更倾向哪种旅行？', a: '🏖️ 海边躺平看日落吹风', b: '🏙️ 城市暴走打卡探店美食' },
+        { q: '深夜追剧/打游戏时，灵魂宵夜选哪个？', a: '🍢 麻辣烫 / 路边烧烤串', b: '🍗 脆皮炸鸡配冰可乐' },
+        { q: '如果养一只小宠物陪伴彼此，选谁？', a: '🐱 高冷粘人小猫咪', b: '🐶 热情摇尾巴小狗狗' },
+        { q: '四人局玩「谁是卧底」，拿到卧底牌会？', a: '🎭 淡定伪装带节奏甩锅', b: '😅 忍不住笑场一秒暴露' },
+        { q: '去游乐园玩，第一站直奔哪个项目？', a: '🎢 尖叫过山车 / 跳楼机', b: '🎡 浪漫摩天轮 / 旋转木马' }
+      ];
+      const players = getFourPlayers();
+      syncQuizState = {
+        mode, // 'partner' 与好友同步测试 | 'passplay' 同屏双人盲选传递
+        partner: players[1],
+        questions,
+        index: 0,
+        step: 'p1', // 'p1' -> 'p2' (passplay) -> 'reveal' -> 'summary'
+        p1Choice: null,
+        p2Choice: null,
+        records: []
+      };
+      renderSyncQuizStage();
+    }
+
+    function renderSyncQuizStage() {
+      const body = document.getElementById('game-stage-body');
+      const sq = syncQuizState;
+
+      // 最终默契度海报结算页
+      if (sq.step === 'summary') {
+        const matchCount = sq.records.filter(r => r.matched).length;
+        const percent = Math.round((matchCount / sq.questions.length) * 100);
+        const badgeText = percent >= 80 ? '灵魂双子星 · 心有灵犀 💯' : percent >= 50 ? '黄金好搭子 · 默契在线 ✨' : '互补反差萌 · 奇妙组合 🎲';
+
+        body.innerHTML = `
+          <div class="my-auto bg-white border border-[#DBDBDB] rounded-3xl overflow-hidden shadow-md">
+            <div class="ins-gradient-btn p-5 text-white text-center">
+              <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wider">POKE SYNC REPORT</span>
+              <div class="flex items-center justify-center gap-3 mt-3">
+                <img src="${appState.currentUser.avatar}" class="w-12 h-12 rounded-full border-2 border-white object-cover" alt="">
+                <span class="text-xl font-bold">💞</span>
+                <img src="${sq.partner.avatar}" class="w-12 h-12 rounded-full border-2 border-white object-cover" alt="">
+              </div>
+              <div class="text-4xl font-extrabold mt-2 tracking-tight">${percent}%</div>
+              <p class="text-xs font-semibold text-white/90 mt-1">${badgeText}</p>
+            </div>
+            <div class="p-4 space-y-2.5">
+              <div class="text-xs font-bold text-neutral-800">6 题作答对比明细（命中 ${matchCount}/6 题）：</div>
+              <div class="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar">
+                ${sq.records.map((r, i) => `
+                  <div class="p-2.5 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF] flex items-center justify-between text-[11px]">
+                    <span class="text-neutral-700 truncate max-w-[68%]">Q${i + 1}. ${r.q}</span>
+                    <span class="font-bold ${r.matched ? 'text-emerald-600' : 'text-neutral-400'}">${r.matched ? '✓ 默契一致' : '✕ 想法不同'}</span>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="shareSyncResultToChat(${percent}, '${badgeText}')" class="py-2.5 rounded-2xl bg-neutral-900 text-white text-xs font-semibold">
+                  发到聊天炫耀
+                </button>
+                <button onclick="initSyncQuizGame('${sq.mode}')" class="py-2.5 rounded-2xl ins-gradient-btn text-white text-xs font-semibold">
+                  再测一次
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const currQ = sq.questions[sq.index];
+
+      body.innerHTML = `
+        <div class="space-y-4">
+          <!-- 模式切换与进度 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-3.5 shadow-xs space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex bg-neutral-100 p-0.5 rounded-full text-[11px]">
+                <button onclick="initSyncQuizGame('partner')" class="px-3 py-1 rounded-full ${sq.mode === 'partner' ? 'bg-white font-bold text-neutral-900 shadow-xs' : 'text-neutral-500'}">
+                  ⚡ 与 ${sq.partner.nickname} 速配
+                </button>
+                <button onclick="initSyncQuizGame('passplay')" class="px-3 py-1 rounded-full ${sq.mode === 'passplay' ? 'bg-white font-bold text-neutral-900 shadow-xs' : 'text-neutral-500'}">
+                  📱 同屏双人轮流盲选
+                </button>
+              </div>
+              <span class="text-xs font-mono font-bold text-pink-600">${sq.index + 1} / ${sq.questions.length}</span>
+            </div>
+            <div class="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+              <div class="h-full ins-gradient-btn transition-all duration-300" style="width: ${((sq.index + 1) / sq.questions.length) * 100}%"></div>
+            </div>
+          </div>
+
+          <!-- 题目主卡片 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-5 shadow-xs space-y-4">
+            <div class="text-center">
+              <span class="px-2.5 py-0.5 rounded-full bg-pink-50 text-pink-600 text-[11px] font-bold">
+                ${sq.step === 'p1' ? '👤 第 1 位（我）请秘密选择' : sq.step === 'p2' ? '👥 已隐藏你的答案！请递给第 2 位选择' : '✨ 本题默契揭晓'}
+              </span>
+              <h3 class="text-base font-bold text-neutral-900 mt-3 leading-snug">${currQ.q}</h3>
+            </div>
+
+            ${sq.step !== 'reveal' ? `
+              <div class="space-y-2.5 pt-1">
+                <button onclick="chooseSyncOption('A')" class="w-full p-4 rounded-2xl border-2 border-[#EFEFEF] bg-[#FAFAFA] hover:border-pink-500 text-left text-sm font-semibold text-neutral-900 active:scale-[0.98] transition">
+                  ${currQ.a}
+                </button>
+                <button onclick="chooseSyncOption('B')" class="w-full p-4 rounded-2xl border-2 border-[#EFEFEF] bg-[#FAFAFA] hover:border-pink-500 text-left text-sm font-semibold text-neutral-900 active:scale-[0.98] transition">
+                  ${currQ.b}
+                </button>
+              </div>
+            ` : `
+              <div class="space-y-3 pt-1">
+                <div class="p-3.5 rounded-2xl ${sq.p1Choice === sq.p2Choice ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'} text-center">
+                  <div class="text-lg font-bold ${sq.p1Choice === sq.p2Choice ? 'text-emerald-700' : 'text-amber-700'}">
+                    ${sq.p1Choice === sq.p2Choice ? '🎉 心有灵犀！选了同一个！' : '😆 想法不同，各有各的快乐！'}
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5 text-xs">
+                  <div class="p-3 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF]">
+                    <span class="text-neutral-400 block mb-1">我的选择：</span>
+                    <strong class="text-neutral-900">${sq.p1Choice === 'A' ? currQ.a : currQ.b}</strong>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF]">
+                    <span class="text-neutral-400 block mb-1">${sq.mode === 'partner' ? sq.partner.nickname : 'TA'}的选择：</span>
+                    <strong class="text-neutral-900">${sq.p2Choice === 'A' ? currQ.a : currQ.b}</strong>
+                  </div>
+                </div>
+                <button onclick="nextSyncQuestion()" class="w-full py-3 rounded-2xl ins-gradient-btn text-white text-xs font-semibold">
+                  ${sq.index + 1 < sq.questions.length ? '下一题 →' : '生成双人默契度报告 ✨'}
+                </button>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    function chooseSyncOption(opt) {
+      const sq = syncQuizState;
+      const currQ = sq.questions[sq.index];
+
+      if (sq.step === 'p1') {
+        sq.p1Choice = opt;
+        if (sq.mode === 'passplay') {
+          sq.step = 'p2';
+          renderSyncQuizStage();
+          return;
+        } else {
+          // 好友智能偏好作答
+          sq.p2Choice = Math.random() < 0.65 ? opt : (opt === 'A' ? 'B' : 'A');
+          sq.step = 'reveal';
+          sq.records.push({ q: currQ.q, matched: sq.p1Choice === sq.p2Choice });
+          renderSyncQuizStage();
+        }
+      } else if (sq.step === 'p2') {
+        sq.p2Choice = opt;
+        sq.step = 'reveal';
+        sq.records.push({ q: currQ.q, matched: sq.p1Choice === sq.p2Choice });
+        renderSyncQuizStage();
+      }
+    }
+
+    function nextSyncQuestion() {
+      const sq = syncQuizState;
+      if (sq.index + 1 < sq.questions.length) {
+        sq.index++;
+        sq.step = 'p1';
+        sq.p1Choice = null;
+        sq.p2Choice = null;
+      } else {
+        sq.step = 'summary';
+      }
+      renderSyncQuizStage();
+    }
+
+    function shareSyncResultToChat(percent, badgeText) {
+      const squad = appState.chats.find(c => c.id === 'squad-room');
+      if (squad) {
+        squad.messages.push({
+          senderId: appState.currentUser.id,
+          senderName: appState.currentUser.nickname,
+          avatar: appState.currentUser.avatar,
+          text: `💞 刚测完【双人默契快问快答】，默契度高达 ${percent}%（${badgeText}）！谁还敢来挑战？`,
+          time: '刚刚'
+        });
+      }
+      closeGameModal();
+      switchTab('chats');
+      openChatRoom('squad-room');
+      showToast('已将默契度战报分享到群聊！');
+    }
+
+    // ---------- 游戏 A：谁是卧底（4人完整可玩版） ----------
+    let ucState = null;
+
+    function initUndercoverGame() {
+      const wordPairs = [
+        { civilian: '奶茶', undercover: '咖啡', civClues: ['喝起来甜甜的，很多人下午必点', '里面经常会加珍珠或者椰果', '热量有点高但让人快乐'], undClues: ['提神醒脑的神器，有点苦', '早上打工人续命必备', '可以加奶变成拿铁'] },
+        { civilian: '微信', undercover: 'QQ', civClues: ['每天打开频率最高的绿色图标应用', '可以刷朋友圈和发语音', '长辈和同事都在上面联系'], undClues: ['小时候经常挂等级攒太阳', '空间装扮和偷菜是青春回忆', '企鹅图标，传大文件很方便'] },
+        { civilian: '火锅', undercover: '麻辣烫', civClues: ['一群人围在一起边涮边聊很热闹', '有九宫格和鸳鸯锅底可选', '毛肚和鸭肠是灵魂搭配'], undClues: ['一个人也能吃的自选煮菜', '按斤称重或者按串算钱', '汤底浓郁通常加很多麻酱'] }
+      ];
+      const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+      const players = getFourPlayers();
+      const undercoverIndex = Math.floor(Math.random() * 4);
+
+      ucState = {
+        pair,
+        players,
+        undercoverIndex,
+        wordRevealed: false,
+        clues: [],
+        voted: false
+      };
+      renderUndercoverStage();
+    }
+
+    function renderUndercoverStage() {
+      const body = document.getElementById('game-stage-body');
+      const myWord = ucState.undercoverIndex === 0 ? ucState.pair.undercover : ucState.pair.civilian;
+
+      body.innerHTML = `
+        <div class="space-y-4">
+          <!-- 身份底牌卡片 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 text-center shadow-xs">
+            <span class="text-[11px] text-neutral-400">你的本局秘密词语（点击查看/隐藏）</span>
+            <div onclick="toggleUcWord()" class="mt-2 py-4 rounded-2xl bg-neutral-900 text-white cursor-pointer select-none active:scale-98 transition">
+              <div class="text-2xl font-bold tracking-widest">${ucState.wordRevealed ? myWord : '•••• (点击翻牌)'}</div>
+              <p class="text-[11px] text-neutral-400 mt-1">${ucState.wordRevealed ? '记住词语，千万别直接说出来！' : '防偷窥模式已开启'}</p>
+            </div>
+          </div>
+
+          <!-- 4位玩家发言记录 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 space-y-2.5 shadow-xs">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-neutral-900">本轮线索描述</h4>
+              <span class="text-[11px] text-pink-600 font-medium">${ucState.clues.length === 0 ? '请你先发言描述' : '全员已发言，请投票'}</span>
+            </div>
+
+            ${ucState.clues.length === 0 ? `
+              <div class="space-y-2 pt-1">
+                <input id="uc-my-clue" type="text" placeholder="用一句话描述你的词语（不能含词中字）..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-xs" />
+                <button onclick="submitUcClue()" class="w-full py-2.5 rounded-xl ins-gradient-btn text-white text-xs font-semibold">
+                  提交我的描述（其余3位好友随即发言）
+                </button>
+              </div>
+            ` : `
+              <div class="space-y-2">
+                ${ucState.clues.map(c => `
+                  <div class="p-2.5 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF] flex items-center gap-2.5">
+                    <img src="${c.avatar}" class="w-8 h-8 rounded-full object-cover" alt="">
+                    <div class="flex-1">
+                      <span class="text-[11px] font-bold text-neutral-900">${c.name}</span>
+                      <p class="text-xs text-neutral-700">“${c.text}”</p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- 投票指认卧底区 -->
+          ${ucState.clues.length > 0 ? `
+            <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 shadow-xs">
+              <h4 class="text-xs font-bold text-neutral-900 mb-2.5">👆 点击投票淘汰你怀疑的「卧底」</h4>
+              <div class="grid grid-cols-2 gap-2.5">
+                ${ucState.players.map((p, idx) => `
+                  <button onclick="voteUcPlayer(${idx})" class="p-3 rounded-2xl border border-[#EFEFEF] bg-[#FAFAFA] hover:border-rose-500 flex items-center gap-2.5 text-left transition active:scale-95">
+                    <img src="${p.avatar}" class="w-9 h-9 rounded-full object-cover" alt="">
+                    <div>
+                      <div class="text-xs font-bold text-neutral-900">${idx === 0 ? '我' : p.nickname}</div>
+                      <div class="text-[10px] text-rose-600 font-semibold">投TA一票</div>
+                    </div>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function toggleUcWord() {
+      ucState.wordRevealed = !ucState.wordRevealed;
+      renderUndercoverStage();
+    }
+
+    function submitUcClue() {
+      const input = document.getElementById('uc-my-clue');
+      const myText = input.value.trim();
+      if (!myText) {
+        showToast('请先输入你的词语描述');
+        return;
+      }
+      ucState.clues.push({
+        name: '我 (' + ucState.players[0].nickname + ')',
+        avatar: ucState.players[0].avatar,
+        text: myText
+      });
+
+      let civIdx = 0;
+      for (let i = 1; i < 4; i++) {
+        const isUnd = i === ucState.undercoverIndex;
+        const clueText = isUnd ? ucState.pair.undClues[0] : ucState.pair.civClues[civIdx++];
+        ucState.clues.push({
+          name: ucState.players[i].nickname,
+          avatar: ucState.players[i].avatar,
+          text: clueText
+        });
+      }
+      renderUndercoverStage();
+    }
+
+    function voteUcPlayer(idx) {
+      const isHit = idx === ucState.undercoverIndex;
+      const undPlayer = ucState.players[ucState.undercoverIndex];
+      const body = document.getElementById('game-stage-body');
+      body.innerHTML = `
+        <div class="my-auto bg-white border border-[#DBDBDB] rounded-3xl p-6 text-center space-y-4 shadow-sm">
+          <div class="text-5xl">${isHit ? '🎉' : '😱'}</div>
+          <h3 class="text-lg font-bold text-neutral-900">${isHit ? '成功揪出卧底！平民胜利' : '投错啦！卧底成功潜伏'}</h3>
+          <p class="text-xs text-neutral-600 leading-relaxed">
+            本局卧底是：<strong class="text-rose-600">${ucState.undercoverIndex === 0 ? '你自己' : undPlayer.nickname}</strong><br>
+            平民词：<strong>${ucState.pair.civilian}</strong> ｜ 卧底词：<strong>${ucState.pair.undercover}</strong>
+          </p>
+          <button onclick="initUndercoverGame()" class="w-full py-3 rounded-2xl ins-gradient-btn text-white text-xs font-semibold">
+            再来一局（换新词卡）
+          </button>
+        </div>
+      `;
+    }
+
+    // ---------- 游戏 B：四人对决·数字炸弹 ----------
+    let bombState = null;
+
+    function initNumberBombGame() {
+      bombState = {
+        min: 1,
+        max: 100,
+        target: Math.floor(Math.random() * 98) + 2,
+        players: getFourPlayers(),
+        turn: 0,
+        logs: ['游戏开始！炸弹藏在 1 ~ 100 之间，由你先猜！'],
+        exploded: false,
+        loser: null
+      };
+      renderBombStage();
+    }
+
+    function renderBombStage() {
+      const body = document.getElementById('game-stage-body');
+      const punishments = [
+        '在「四人密友小队」发一条语音夸赞主理人10秒！',
+        '公开手机相册里最近拍的一张照片发到圈内动态！',
+        '下一局谁是卧底无条件请大家喝虚拟奶茶☕️',
+        '回答一个真心话：最近一次心动是什么时候？'
+      ];
+
+      if (bombState.exploded) {
+        const pun = punishments[Math.floor(Math.random() * punishments.length)];
+        body.innerHTML = `
+          <div class="my-auto bg-white border border-rose-200 rounded-3xl p-6 text-center space-y-4 shadow-md">
+            <div class="text-6xl">💥</div>
+            <span class="px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-bold">BOOM! 炸弹引爆</span>
+            <h3 class="text-xl font-bold text-neutral-900">${bombState.loser} 踩中了炸弹 (${bombState.target})！</h3>
+            <div class="p-4 rounded-2xl bg-[#FAFAFA] border border-[#EFEFEF] text-left">
+              <span class="text-[10px] font-bold uppercase text-pink-600">🎲 派对惩罚转盘结果</span>
+              <p class="text-xs font-semibold text-neutral-800 mt-1">${pun}</p>
+            </div>
+            <button onclick="initNumberBombGame()" class="w-full py-3 rounded-2xl ins-gradient-btn text-white text-xs font-semibold">
+              重新埋雷 · 再来一局
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const currentPlayer = bombState.players[bombState.turn];
+      const isMyTurn = bombState.turn === 0;
+
+      body.innerHTML = `
+        <div class="space-y-4">
+          <!-- 安全区间大屏 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-5 text-center shadow-xs">
+            <div class="text-4xl mb-2 inline-block bomb-shake">💣</div>
+            <p class="text-xs text-neutral-400">当前安全数字范围</p>
+            <div class="text-3xl font-mono font-bold text-neutral-900 mt-1">
+              ${bombState.min} <span class="text-pink-600 mx-2">~</span> ${bombState.max}
+            </div>
+            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 text-xs font-semibold text-neutral-800">
+              <img src="${currentPlayer.avatar}" class="w-5 h-5 rounded-full object-cover" alt="">
+              <span>当前轮到：${isMyTurn ? '你' : currentPlayer.nickname}</span>
+            </div>
+          </div>
+
+          <!-- 输入猜测数字 -->
+          ${isMyTurn ? `
+            <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 space-y-2.5 shadow-xs">
+              <label class="block text-xs font-bold text-neutral-800">输入 (${bombState.min} ~ ${bombState.max}) 之间的整数：</label>
+              <div class="flex gap-2">
+                <input id="bomb-guess-input" type="number" min="${bombState.min}" max="${bombState.max}" placeholder="输入数字..." class="flex-1 px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#DBDBDB] text-base font-mono font-bold" />
+                <button onclick="submitBombGuess()" class="px-5 py-2.5 rounded-xl ins-gradient-btn text-white text-xs font-semibold">
+                  确认排除
+                </button>
+              </div>
+            </div>
+          ` : `
+            <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 text-center text-xs text-neutral-500">
+              ⏳ 正在等待 ${currentPlayer.nickname} 报数...
+            </div>
+          `}
+
+          <!-- 报数历史记录 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl p-4 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
+            <h4 class="text-xs font-bold text-neutral-900 mb-1">实时报数记录</h4>
+            ${bombState.logs.map(l => `<p class="text-xs text-neutral-600">• ${l}</p>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function submitBombGuess() {
+      const val = parseInt(document.getElementById('bomb-guess-input').value, 10);
+      if (isNaN(val) || val <= bombState.min || val >= bombState.max) {
+        showToast(`请输入严格在 ${bombState.min} 到 ${bombState.max} 之间的数字`);
+        return;
+      }
+      processBombNumber(val, '我');
+    }
+
+    function processBombNumber(num, playerName) {
+      if (num === bombState.target) {
+        bombState.exploded = true;
+        bombState.loser = playerName;
+        renderBombStage();
+        return;
+      }
+      if (num < bombState.target) bombState.min = num;
+      else bombState.max = num;
+
+      bombState.logs.unshift(`${playerName} 报了 ${num}，安全！范围缩小至 ${bombState.min} ~ ${bombState.max}`);
+      bombState.turn = (bombState.turn + 1) % 4;
+      renderBombStage();
+
+      // 若轮到其他3位玩家，自动依次报数直到轮回玩家
+      if (bombState.turn !== 0 && !bombState.exploded) {
+        setTimeout(() => {
+          if (bombState.exploded) return;
+          const bot = bombState.players[bombState.turn];
+          const span = bombState.max - bombState.min;
+          let guess = span <= 2
+            ? bombState.min + 1
+            : Math.floor(bombState.min + 1 + Math.random() * (span - 1));
+          processBombNumber(guess, bot.nickname);
+        }, 850);
+      }
+    }
+
+    // ---------- 游戏 C：你画我猜（4人画板 + 好友实时抢答） ----------
+    let drawPromptWord = '太阳眼镜';
+    let drawTimer = null;
+
+    function initDrawAndGuessGame() {
+      const words = ['太阳眼镜', '冰美式咖啡', '招财猫', '热气球', '仙人掌', '草莓蛋糕'];
+      drawPromptWord = words[Math.floor(Math.random() * words.length)];
+      const body = document.getElementById('game-stage-body');
+
+      body.innerHTML = `
+        <div class="flex-1 flex flex-col space-y-3">
+          <!-- 顶部词卡提示 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-2xl px-4 py-2.5 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] text-neutral-400">本轮由你作画 · 题目词：</span>
+              <span class="text-sm font-bold text-pink-600 ml-1">${drawPromptWord}</span>
+            </div>
+            <button onclick="clearDrawCanvas()" class="px-2.5 py-1 rounded-lg bg-neutral-100 text-xs font-medium text-neutral-700">清空画布</button>
+          </div>
+
+          <!-- 响应式触屏画板 -->
+          <div class="bg-white border border-[#DBDBDB] rounded-3xl overflow-hidden shadow-xs relative">
+            <canvas id="party-draw-canvas" class="w-full h-56 block touch-none cursor-crosshair bg-white"></canvas>
+            <!-- 画笔颜色条 -->
+            <div class="px-3 py-2 bg-[#FAFAFA] border-t border-[#EFEFEF] flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <button onclick="setBrushColor('#171717')" class="w-6 h-6 rounded-full bg-neutral-900 ring-2 ring-offset-1 ring-neutral-400"></button>
+                <button onclick="setBrushColor('#E11D48')" class="w-6 h-6 rounded-full bg-rose-600"></button>
+                <button onclick="setBrushColor('#2563EB')" class="w-6 h-6 rounded-full bg-blue-600"></button>
+                <button onclick="setBrushColor('#F59E0B')" class="w-6 h-6 rounded-full bg-amber-500"></button>
+                <button onclick="setBrushColor('#10B981')" class="w-6 h-6 rounded-full bg-emerald-500"></button>
+              </div>
+              <button onclick="initDrawAndGuessGame()" class="text-xs font-semibold text-pink-600">换个词 ↻</button>
+            </div>
+          </div>
+
+          <!-- 其余3位好友实时抢答弹幕区 -->
+          <div class="flex-1 bg-white border border-[#DBDBDB] rounded-3xl p-3.5 flex flex-col justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-neutral-900 mb-2">💬 其余3位好友实时猜词中...</h4>
+              <div id="draw-guess-feed" class="space-y-1.5 text-xs">
+                <p class="text-neutral-400">开始在上方画布涂鸦，好友们会根据你的笔画实时抢答！</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      setupCanvasDrawing();
+    }
+
+    let currentBrushColor = '#171717';
+    function setBrushColor(c) {
+      currentBrushColor = c;
+    }
+
+    function clearDrawCanvas() {
+      const canvas = document.getElementById('party-draw-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function setupCanvasDrawing() {
+      const canvas = document.getElementById('party-draw-canvas');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * 2;
+      canvas.height = rect.height * 2;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(2, 2);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 4;
+
+      let drawing = false;
+      let strokeCount = 0;
+
+      const getPos = (e) => {
+        const r = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - r.left, y: clientY - r.top };
+      };
+
+      const start = (e) => {
+        drawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.strokeStyle = currentBrushColor;
+        ctx.moveTo(pos.x, pos.y);
+      };
+
+      const move = (e) => {
+        if (!drawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      };
+
+      const end = () => {
+        if (!drawing) return;
+        drawing = false;
+        strokeCount++;
+        triggerBotGuesses(strokeCount);
+      };
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+
+      canvas.addEventListener('touchstart', start, { passive: false });
+      canvas.addEventListener('touchmove', move, { passive: false });
+      canvas.addEventListener('touchend', end);
+    }
+
+      // 其余3位好友实时抢答弹幕区
+      const feed = document.getElementById('draw-guess-feed');
+      if (!feed) return;
+      const players = getFourPlayers();
+
+      if (strokes === 1) {
+        feed.innerHTML = `<p class="text-neutral-700"><strong>${players[1].nickname}:</strong> 嗯？这画的是个圆圈还是眼镜框？</p>`;
+      } else if (strokes === 2) {
+        feed.innerHTML += `<p class="text-neutral-700"><strong>${players[2].nickname}:</strong> 灵魂画手上线了哈哈哈，我猜是吃的！</p>`;
+      } else if (strokes === 4) {
+        feed.innerHTML += `<p class="text-emerald-600 font-bold">🎉 ${players[3].nickname} 抢答成功：【${drawPromptWord}】！默契度 +100</p>`;
+        showToast(`🎉 ${players[3].nickname} 猜中了「${drawPromptWord}」！`);
+      }
+    }
+
+    // ==================== 13. 初始化渲染 ====================
+    function renderAll() {
+      renderChats();
+      renderMoments();
+      renderPartySeats();
+      renderProfileAndApprovals();
+    }
+
+    window.onload = function () {
+      renderAll();
+    };
+  </script>
+</body>
+</html>
