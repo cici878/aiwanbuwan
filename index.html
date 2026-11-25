@@ -9,100 +9,69 @@
   <title>爱玩不玩 · 4人私密空间</title>
   <style>
     :root {
-      --bg: #fafafa; --card: #ffffff; --text: #141414; --sub: #8e8e93;
-      --line: #efefef; --accent: #111111; --danger: #ff3b30; --ok: #34c759;
-      --grad: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      --bg:#fafafa;--card:#fff;--text:#141414;--sub:#8e8e93;--line:#efefef;--accent:#111;--soft:#f2f2f7;--bubble-other:#f2f2f7;--bubble-mine:#111;--bubble-mine-text:#fff;--danger:#ff3b30;--ok:#34c759;
+      --grad:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
     }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
-    .app-shell { width: 100%; max-width: 480px; background: var(--card); min-height: 100vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.04); }
-    header { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
-    .brand { font-weight: 800; font-size: 19px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
-    .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--grad); display: inline-block; }
-    .badge { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: #f2f2f7; color: #3a3a3c; font-weight: 600; }
-    .badge.admin { background: #111; color: #fff; }
-    main { flex: 1; padding: 16px; padding-bottom: 84px; overflow-y: auto; }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
-    .gate-box { margin: auto 16px; text-align: center; padding: 28px 20px; }
-    .avatar-ring { width: 68px; height: 68px; border-radius: 50%; padding: 3px; background: var(--grad); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; }
-    .avatar-inner { width: 100%; height: 100%; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-    h2 { margin: 8px 0 6px; font-size: 20px; }
-    p.desc { margin: 0 0 18px; font-size: 13px; color: var(--sub); line-height: 1.5; }
-    input, textarea, select { width: 100%; border: 1px solid #e5e5ea; background: #fafafa; border-radius: 12px; padding: 12px 14px; font-size: 14px; outline: none; margin-bottom: 10px; font-family: inherit; }
-    input:focus, textarea:focus { border-color: #111; background: #fff; }
-    button { border: none; border-radius: 12px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
-    button:active { opacity: 0.75; }
-    .btn-primary { background: #111; color: #fff; width: 100%; }
-    .btn-ghost { background: #f2f2f7; color: #111; }
-    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 9px; }
-    .btn-ok { background: var(--ok); color: #fff; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .stories { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
-    .story-item { text-align: center; min-width: 60px; }
-    .story-ring { width: 54px; height: 54px; border-radius: 50%; padding: 2.5px; background: var(--grad); margin: 0 auto 4px; }
-    .story-ring.empty { background: #e5e5ea; }
-    .story-av { width: 100%; height: 100%; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-    .story-name { font-size: 11px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 62px; }
-    .chat-list { display: flex; flex-direction: column; gap: 10px; min-height: 54vh; }
-    .msg { max-width: 78%; display: flex; flex-direction: column; }
-    .msg.mine { align-self: flex-end; align-items: flex-end; }
-    .msg-meta { font-size: 11px; color: var(--sub); margin-bottom: 3px; }
-    .msg-bubble { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.45; background: #f2f2f7; color: #111; word-break: break-word; }
-    .msg.mine .msg-bubble { background: #111; color: #fff; border-bottom-right-radius: 5px; }
-    .msg:not(.mine) .msg-bubble { border-bottom-left-radius: 5px; }
-    .chat-bar { position: fixed; bottom: 62px; width: 100%; max-width: 480px; background: #fff; border-top: 1px solid var(--line); padding: 8px 12px; display: flex; gap: 8px; }
-    .chat-bar input { margin: 0; border-radius: 999px; padding: 10px 14px; }
-    .chat-bar button { border-radius: 999px; padding: 0 18px; white-space: nowrap; }
-    .post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .post-av { width: 36px; height: 36px; border-radius: 50%; background: #f2f2f7; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    .post-body { font-size: 14px; line-height: 1.55; margin-bottom: 10px; white-space: pre-wrap; }
-    .post-actions { display: flex; gap: 14px; font-size: 13px; color: var(--sub); border-top: 1px solid var(--line); padding-top: 8px; }
-    .comment-box { margin-top: 8px; background: #fafafa; border-radius: 10px; padding: 8px 10px; font-size: 12px; }
-    nav.tabbar { position: fixed; bottom: 0; width: 100%; max-width: 480px; height: 62px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px); border-top: 1px solid var(--line); display: flex; z-index: 30; }
-    .tab-btn { flex: 1; background: none; border-radius: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--sub); font-size: 11px; font-weight: 500; position: relative; }
-    .tab-btn.active { color: #111; font-weight: 700; }
-    .tab-icon { font-size: 19px; }
-    .red-dot { position: absolute; top: 9px; right: 28%; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
-    .hidden { display: none !important; }
-    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .pill-select { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
-    .emoji-opt { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid #e5e5ea; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
-    .emoji-opt.sel { border-color: #111; background: #f2f2f7; transform: scale(1.08); }
+    body[data-theme="dark"]{--bg:#0f0f12;--card:#18181d;--text:#f5f5f7;--sub:#9898a0;--line:#282830;--accent:#f5f5f7;--soft:#24242c;--bubble-other:#25252e;--bubble-mine:#fff;--bubble-mine-text:#111}
+    body[data-theme="matcha"]{--bg:#f5f7f4;--card:#fff;--text:#1c241d;--sub:#738276;--line:#e5ece6;--accent:#2f5233;--soft:#ebf1ec;--bubble-other:#ebf1ec;--bubble-mine:#2f5233;--bubble-mine-text:#fff}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;min-height:100vh;transition:background .2s ease,color .2s ease}
+    .app-shell{width:100%;max-width:480px;background:var(--card);min-height:100vh;display:flex;flex-direction:column;position:relative;box-shadow:0 0 30px rgba(0,0,0,.05)}
+    header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--card) 90%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:13px 16px;display:flex;align-items:center;justify-content:space-between}
+    .brand{font-weight:800;font-size:18px;letter-spacing:-.4px;display:flex;align-items:center;gap:8px}.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--grad);display:inline-block}
+    .badge{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--text);font-weight:600}.badge.admin{background:var(--accent);color:var(--card)}
+    main{flex:1;padding:14px 16px 136px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px;animation:fadeIn .22s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    .gate-box{margin:auto 16px;text-align:center;padding:26px 20px}.avatar-ring{width:68px;height:68px;border-radius:50%;padding:3px;background:var(--grad);margin:0 auto 12px;display:flex;align-items:center;justify-content:center}.avatar-inner{width:100%;height:100%;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:28px}
+    h2{margin:8px 0 6px;font-size:20px}p.desc{margin:0 0 14px;font-size:13px;color:var(--sub);line-height:1.5}
+    input,textarea,select{width:100%;border:1px solid var(--line);background:var(--soft);color:var(--text);border-radius:12px;padding:11px 13px;font-size:14px;outline:none;margin-bottom:10px;font-family:inherit}
+    input:focus,textarea:focus,select:focus{border-color:var(--accent);background:var(--card)}
+    button{border:none;border-radius:12px;padding:10px 15px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s ease,opacity .15s ease;color:var(--text)}
+    button:active{transform:scale(.96);opacity:.85}.btn-primary{background:var(--accent);color:var(--card);width:100%}.btn-ghost{background:var(--soft);color:var(--text)}.btn-sm{padding:6px 11px;font-size:12px;border-radius:9px;width:auto}.btn-ok{background:var(--ok);color:#fff;width:auto}.btn-danger{background:var(--danger);color:#fff;width:auto}
+    .stories{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}.story-item{text-align:center;min-width:64px;position:relative}.story-ring{width:52px;height:52px;border-radius:50%;padding:2.5px;background:var(--grad);margin:0 auto 4px}.story-ring.empty{background:var(--line)}.story-av{width:100%;height:100%;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:22px}.story-mood{font-size:10px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:1px 6px;display:inline-block;max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}.story-name{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64px}
+    .chat-list{display:flex;flex-direction:column;gap:10px;padding-bottom:16px}.msg{max-width:80%;display:flex;flex-direction:column;animation:fadeIn .18s ease}.msg.mine{align-self:flex-end;align-items:flex-end}.msg-meta{font-size:11px;color:var(--sub);margin-bottom:3px}.msg-quote{font-size:11px;color:var(--sub);background:var(--soft);border-left:2.5px solid var(--sub);padding:4px 8px;border-radius:8px;margin-bottom:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.msg-bubble{padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.45;background:var(--bubble-other);color:var(--text);word-break:break-word}.msg.mine .msg-bubble{background:var(--bubble-mine);color:var(--bubble-mine-text);border-bottom-right-radius:5px}.msg:not(.mine) .msg-bubble{border-bottom-left-radius:5px}.msg-img{max-width:210px;max-height:220px;border-radius:14px;margin-top:4px;display:block;object-fit:cover;border:1px solid var(--line)}.msg-sub-act{font-size:10px;color:var(--sub);margin-top:2px;cursor:pointer}
+    .chat-wrap{position:fixed;bottom:62px;width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--line);z-index:22}.quote-banner{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--sub);background:var(--soft);padding:6px 12px}.emoji-strip{display:flex;gap:6px;padding:6px 12px 0;overflow-x:auto}.emoji-chip{background:var(--soft);border-radius:999px;padding:3px 9px;font-size:13px;cursor:pointer;white-space:nowrap}.chat-bar{padding:8px 12px;display:flex;gap:6px;align-items:center}.chat-bar input{margin:0;border-radius:999px;padding:9px 13px;flex:1}.chat-bar button{border-radius:999px;padding:9px 13px;white-space:nowrap;width:auto}
+    .post-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}.post-av{width:36px;height:36px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:18px}.post-body{font-size:14px;line-height:1.55;margin-bottom:10px;white-space:pre-wrap}.post-actions{display:flex;gap:16px;font-size:13px;color:var(--sub);border-top:1px solid var(--line);padding-top:8px}.comment-box{margin-top:8px;background:var(--soft);border-radius:10px;padding:8px 10px;font-size:12px}
+    nav.tabbar{position:fixed;bottom:0;width:100%;max-width:480px;height:62px;background:color-mix(in srgb,var(--card) 95%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;z-index:30}.tab-btn{flex:1;background:none;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--sub);font-size:11px;font-weight:500;position:relative;padding:0}.tab-btn.active{color:var(--text);font-weight:700}.tab-icon{font-size:18px}.red-dot{position:absolute;top:9px;right:28%;width:8px;height:8px;border-radius:50%;background:var(--danger)}
+    .hidden{display:none!important}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.pill-select{display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}.emoji-opt{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer}.emoji-opt.sel{border-color:var(--accent);background:var(--soft);transform:scale(1.08)}.mode-pills{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.mode-pill{font-size:11px;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--sub);cursor:pointer}.mode-pill.active{background:var(--accent);color:var(--card);font-weight:600}.game-box-result{background:var(--soft);padding:12px;border-radius:14px;margin-top:10px;font-size:14px;line-height:1.5}canvas.draw-pad{width:100%;height:190px;border:1px solid var(--line);border-radius:14px;background:#fff;touch-action:none;display:block;margin-top:8px}.rps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
   </style>
 </head>
 <body>
 <div class="app-shell">
   <header><div class="brand"><span class="brand-dot"></span>爱玩不玩</div><div id="headerStatus" class="badge">连接中...</div></header>
-
   <div id="gateView" class="gate-box card hidden">
     <div class="avatar-ring"><div class="avatar-inner" id="previewAvatar">🦊</div></div>
-    <h2 id="gateTitle">生成你的虚拟身份</h2>
-    <p class="desc" id="gateDesc">仅限受邀的 4 位好友进入，提交后需主理人审批通过。</p>
-    <div id="applyForm"><div class="pill-select" id="emojiPicker"></div>
-      <input id="nickInput" maxlength="12" placeholder="输入你的专属昵称（如：Cici）" />
-      <input id="bioInput" maxlength="24" placeholder="一句话个性签名（选填）" />
-      <input id="adminKeyInput" type="password" placeholder="主理人暗号（普通朋友请留空）" />
-      <button class="btn-primary" onclick="submitApplication()">提交入群申请</button>
-    </div>
-    <div id="pendingBox" class="hidden"><p style="font-size:13px;color:#555;background:#f2f2f7;padding:12px;border-radius:12px;">你的虚拟 ID：<strong id="myVirtualId"></strong><br/>状态：<strong>等待主理人放行中...</strong></p><button class="btn-ghost btn-sm" style="margin-top:10px;" onclick="resetLocalIdentity()">重新填写申请</button></div>
+    <h2 id="gateTitle">生成你的虚拟身份</h2><p class="desc" id="gateDesc">仅限受邀的 4 位好友进入，提交后需主理人审批通过。</p>
+    <div id="applyForm"><div class="pill-select" id="emojiPicker"></div><input id="nickInput" maxlength="12" placeholder="输入你的专属昵称（如：Cici）" /><input id="bioInput" maxlength="24" placeholder="一句话个性签名（选填）" /><input id="adminKeyInput" type="password" placeholder="主理人暗号（普通朋友请留空）" /><button class="btn-primary" onclick="submitApplication()">提交入群申请</button></div>
+    <div id="pendingBox" class="hidden"><p style="font-size:13px;color:var(--sub);background:var(--soft);padding:12px;border-radius:12px;">你的虚拟 ID：<strong id="myVirtualId"></strong><br/>状态：<strong>等待主理人放行中...</strong></p><button class="btn-ghost btn-sm" style="margin-top:10px;" onclick="resetLocalIdentity()">重新填写申请</button></div>
   </div>
-
   <main id="mainView" class="hidden">
     <div class="stories" id="memberStories"></div>
     <section id="tabChat"><div class="chat-list" id="chatList"></div></section>
-    <section id="tabMoments" class="hidden"><div class="card"><textarea id="momentText" rows="2" placeholder="分享此刻给圈里的 3 个朋友..."></textarea><button class="btn-primary btn-sm" onclick="publishMoment()">发布动态</button></div><div id="momentsList"></div></section>
+    <section id="tabMoments" class="hidden">
+      <div class="card"><textarea id="momentText" rows="2" placeholder="分享此刻给圈里的 3 个朋友..."></textarea><div class="row" style="margin-bottom:8px;"><label class="btn-ghost btn-sm" style="cursor:pointer;">📷 选图（自动压缩）<input type="file" id="momentImgFile" accept="image/*" style="display:none;" onchange="handleMomentImgChange(this)" /></label><span id="momentImgTip" style="font-size:11px;color:var(--sub);">未选图片</span></div><button class="btn-primary btn-sm" onclick="publishMoment()">发布动态</button></div>
+      <div id="momentsList"></div>
+    </section>
     <section id="tabGames" class="hidden">
-      <div class="card"><div class="row"><strong>🎲 真心话大冒险（全员同步）</strong><button class="btn-primary btn-sm" onclick="drawTruthDare()">抽一题</button></div><p id="tdResult" style="margin:14px 0 4px;font-size:15px;font-weight:600;min-height:42px;color:#111;">点击右上角「抽一题」，全群 4 人实时看到同一道题！</p></div>
-      <div class="card"><div class="row"><strong>🕵️ 谁是卧底（自动发词）</strong><button class="btn-ghost btn-sm" onclick="startUndercover()">开启新一局</button></div><p class="desc" style="margin-top:6px;">系统自动给当前在线成员私密分配词语，每人只能看到自己的词。</p><div id="ucWordBox" style="background:#f2f2f7;padding:12px;border-radius:12px;text-align:center;font-size:15px;font-weight:700;">等待开启新一局...</div></div>
+      <div class="card"><div class="row"><strong>🎲 真心话大冒险（150+题库）</strong><button class="btn-primary btn-sm" onclick="drawTruthDare()">抽一题</button></div><div class="mode-pills" id="tdModes"><span class="mode-pill active" data-mode="all" onclick="setTdMode('all', this)">全部</span><span class="mode-pill" data-mode="chill" onclick="setTdMode('chill', this)">轻松破冰</span><span class="mode-pill" data-mode="tea" onclick="setTdMode('tea', this)">熟人爆料</span><span class="mode-pill" data-mode="deep" onclick="setTdMode('deep', this)">深夜走心</span><span class="mode-pill" data-mode="dare" onclick="setTdMode('dare', this)">高能大冒险</span></div><div id="tdResult" class="game-box-result">点击右上角「抽一题」，全群实时看到同一道题！</div></div>
+      <div class="card"><div class="row"><strong>🕵️ 谁是卧底（120+词对）</strong><button class="btn-ghost btn-sm" onclick="startUndercover()">开启新一局</button></div><p class="desc" style="margin:6px 0 0;">系统自动给当前在线成员私密分配词语，每人只能看到自己的词。</p><div id="ucWordBox" class="game-box-result" style="text-align:center;font-weight:700;">等待开启新一局...</div></div>
+      <div class="card"><div class="row"><strong>🎨 你画我猜（极简画板 · 150+词）</strong><div style="display:flex;gap:6px;"><button class="btn-ghost btn-sm" onclick="pickDrawWord()">出词</button><button class="btn-ghost btn-sm" onclick="clearCanvas()">清屏</button></div></div><div id="drawWordBox" style="font-size:13px;color:var(--sub);margin-top:6px;">点击「出词」给自己看一个词，画出来让大家猜！</div><canvas id="drawCanvas" class="draw-pad" width="420" height="190"></canvas></div>
+      <div class="card"><div class="row"><strong>💞 默契大考验 / 灵魂拷问（100+题）</strong><button class="btn-ghost btn-sm" onclick="drawMatchQuestion()">换一题</button></div><div id="matchResult" class="game-box-result">点「换一题」，看看你们几个选得一不一样！</div></div>
+      <div class="card"><div class="row"><strong>🔮 单人盲盒签 / 今日运势</strong><button class="btn-ghost btn-sm" onclick="drawFortune()">抽今日签</button></div><div id="fortuneResult" class="game-box-result">一个人发呆时也能抽一签，看看今天适合干嘛。</div></div>
+      <div class="card"><div class="row"><strong>✌️ 双人石头剪刀布 & 猜数字</strong><button class="btn-ghost btn-sm" onclick="resetNumberGuess()">重置猜数字</button></div><div class="rps-grid"><button class="btn-ghost" onclick="playRps('✊ 石头')">✊ 石头</button><button class="btn-ghost" onclick="playRps('✌️ 剪刀')">✌️ 剪刀</button><button class="btn-ghost" onclick="playRps('🖐️ 布')">🖐️ 布</button></div><div id="rpsResult" class="game-box-result">选一个出拳，和朋友/电脑比一局！</div><div class="row" style="margin-top:10px;"><input id="guessNumInput" type="number" min="1" max="100" placeholder="1~100 猜炸弹数字" style="margin:0;" /><button class="btn-primary btn-sm" style="white-space:nowrap;" onclick="submitNumberGuess()">猜一下</button></div><div id="numGuessResult" style="font-size:12px;color:var(--sub);margin-top:6px;">系统已悄悄定好 1~100 之间的数字，试试手气！</div></div>
     </section>
     <section id="tabAdmin" class="hidden">
-      <div class="card"><div class="row"><div><strong id="meName"></strong><div style="font-size:12px;color:var(--sub);" id="meIdLabel"></div></div><span class="badge" id="meRoleBadge">成员</span></div></div>
+      <div class="card"><div class="row"><div><strong id="meName"></strong><div style="font-size:12px;color:var(--sub);" id="meIdLabel"></div></div><span class="badge" id="meRoleBadge">成员</span></div><div style="margin-top:12px;font-size:12px;font-weight:600;margin-bottom:4px;">我的当前状态挂牌</div><div class="row"><select id="moodSelect" style="margin:0;"><option value="✨ 在线摸鱼">✨ 在线摸鱼</option><option value="☕ 喝东西中">☕ 喝东西中</option><option value="🎮 想打游戏">🎮 想打游戏</option><option value="🌙 深夜emo">🌙 深夜emo</option><option value="💤 准备睡觉">💤 准备睡觉</option><option value="🔥 精力旺盛">🔥 精力旺盛</option></select><button class="btn-primary btn-sm" style="white-space:nowrap;" onclick="saveMood()">更新状态</button></div><div style="margin-top:12px;font-size:12px;font-weight:600;margin-bottom:6px;">主题风格切换（本地生效，不占流量）</div><div style="display:flex;gap:8px;"><button class="btn-ghost btn-sm" onclick="applyTheme('light')">☀️ 奶油 Ins</button><button class="btn-ghost btn-sm" onclick="applyTheme('dark')">🌙 夜间暗黑</button><button class="btn-ghost btn-sm" onclick="applyTheme('matcha')">🍵 莫兰迪绿</button></div></div>
       <div id="adminPanel" class="card hidden"><h3 style="margin:0 0 10px;font-size:16px;">👑 主理人审批台（成员上限 4 人）</h3><div id="pendingList" style="font-size:13px;color:var(--sub);">暂无待审批申请</div><hr style="border:none;border-top:1px solid var(--line);margin:14px 0;"/><div style="font-size:13px;font-weight:600;margin-bottom:6px;">主理人交接 / 暗号设置</div><div class="row"><input id="newAdminCode" placeholder="设置新主理人暗号（默认 8888）" style="margin:0;"/><button class="btn-primary btn-sm" style="white-space:nowrap;" onclick="updateAdminCode()">保存暗号</button></div></div>
       <div id="claimAdminBox" class="card"><div style="font-size:13px;font-weight:600;margin-bottom:6px;">🔑 换手机了？输入主理人暗号恢复权限</div><div class="row"><input id="claimCodeInput" type="password" placeholder="输入主理人暗号" style="margin:0;"/><button class="btn-ghost btn-sm" style="white-space:nowrap;" onclick="claimAdmin()">验证身份</button></div></div>
     </section>
   </main>
-
-  <div id="chatBar" class="chat-bar hidden"><input id="chatInput" placeholder="发消息..." onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn-primary" onclick="sendChat()">发送</button></div>
+  <div id="chatBar" class="chat-wrap hidden">
+    <div id="quoteBanner" class="quote-banner hidden"><span id="quoteText"></span><span style="cursor:pointer;font-weight:700;" onclick="clearQuote()">✕</span></div>
+    <div class="emoji-strip"><span class="emoji-chip" onclick="insertQuickEmoji('😂')">😂</span><span class="emoji-chip" onclick="insertQuickEmoji('🥺')">🥺</span><span class="emoji-chip" onclick="insertQuickEmoji('❤️')">❤️</span><span class="emoji-chip" onclick="insertQuickEmoji('👍')">👍</span><span class="emoji-chip" onclick="insertQuickEmoji('🫠')">🫠</span><span class="emoji-chip" onclick="insertQuickEmoji('🎉')">🎉</span><span class="emoji-chip" onclick="insertQuickEmoji('🤔')">🤔</span><span class="emoji-chip" onclick="insertQuickEmoji('✨')">✨</span></div>
+    <div class="chat-bar"><label class="btn-ghost" style="border-radius:999px;padding:8px 11px;cursor:pointer;font-size:13px;">🖼️<input type="file" id="chatImgFile" accept="image/*" style="display:none;" onchange="handleChatImgChange(this)" /></label><input id="chatInput" placeholder="发消息..." onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn-primary" onclick="sendChat()">发送</button></div>
+  </div>
   <nav id="tabBar" class="tabbar hidden">
     <button class="tab-btn active" data-tab="tabChat" onclick="switchTab('tabChat', this)"><span class="tab-icon">💬</span><span>群聊</span></button>
     <button class="tab-btn" data-tab="tabMoments" onclick="switchTab('tabMoments', this)"><span class="tab-icon">📸</span><span>动态</span></button>
@@ -113,7 +82,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set, get, push, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, set, push, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAIGWqvNDvKUCtw0rvXsAeN8pgqZgGVq98",
@@ -125,112 +94,79 @@
     appId: "1:356917092623:web:59f0c220ef6df0e3571e7a",
     measurementId: "G-36R7NPY15J"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const EMOJIS = ["🦊", "🐱", "🐼", "🐰", "🐶", "🐸", "🦄", "🐻"];
-  let selectedEmoji = EMOJIS[0];
-  let uid = localStorage.getItem("awbw_uid");
-  if (!uid) { uid = "AW-" + Math.random().toString(36).substring(2, 7).toUpperCase(); localStorage.setItem("awbw_uid", uid); }
 
-  let roomState = { adminUid: null, adminCode: "8888", members: {}, pending: {}, chats: {}, moments: {}, game: {} };
-  const picker = document.getElementById("emojiPicker");
-  EMOJIS.forEach((em, idx) => {
-    const el = document.createElement("div"); el.className = "emoji-opt" + (idx === 0 ? " sel" : ""); el.textContent = em;
-    el.onclick = () => { selectedEmoji = em; document.getElementById("previewAvatar").textContent = em; document.querySelectorAll(".emoji-opt").forEach(x => x.classList.remove("sel")); el.classList.add("sel"); };
-    picker.appendChild(el);
-  });
-
-  onValue(ref(db, "room"), (snap) => {
-    const val = snap.val() || {};
-    roomState = { adminUid: val.adminUid || null, adminCode: val.adminCode || "8888", members: val.members || {}, pending: val.pending || {}, chats: val.chats || {}, moments: val.moments || {}, game: val.game || {} };
-    renderAll();
-  }, (err) => { document.getElementById("headerStatus").textContent = "数据库未开放读写"; alert("Firebase 连接提示：" + err.message); });
-
-  function renderAll() {
-    const me = roomState.members[uid]; const myPending = roomState.pending[uid]; const isAdmin = roomState.adminUid === uid; const memberCount = Object.keys(roomState.members).length;
-    const statusBadge = document.getElementById("headerStatus");
-    if (me) { statusBadge.textContent = isAdmin ? `👑 主理人 · ${memberCount}/4` : `已入群 · ${memberCount}/4`; statusBadge.className = isAdmin ? "badge admin" : "badge"; }
-    else { statusBadge.textContent = `私密空间 · ${memberCount}/4`; statusBadge.className = "badge"; }
-    if (!me) {
-      document.getElementById("gateView").classList.remove("hidden"); document.getElementById("mainView").classList.add("hidden"); document.getElementById("chatBar").classList.add("hidden"); document.getElementById("tabBar").classList.add("hidden");
-      if (myPending) { document.getElementById("applyForm").classList.add("hidden"); document.getElementById("pendingBox").classList.remove("hidden"); document.getElementById("myVirtualId").textContent = `${myPending.avatar} ${myPending.name} (${uid})`; document.getElementById("gateTitle").textContent = "等待主理人审核"; }
-      else { document.getElementById("applyForm").classList.remove("hidden"); document.getElementById("pendingBox").classList.add("hidden"); document.getElementById("gateTitle").textContent = !roomState.adminUid ? "创建你的主理人身份" : "生成你的虚拟身份"; }
-      return;
-    }
-    document.getElementById("gateView").classList.add("hidden"); document.getElementById("mainView").classList.remove("hidden"); document.getElementById("tabBar").classList.remove("hidden");
-    const activeTab = document.querySelector(".tab-btn.active")?.dataset.tab || "tabChat";
-    document.getElementById("chatBar").classList.toggle("hidden", activeTab !== "tabChat");
-    renderStories(); renderChats(); renderMoments(); renderGame(); renderAdminPanel(me, isAdmin);
-  }
-
-  function renderStories() {
-    const box = document.getElementById("memberStories"); box.innerHTML = ""; const list = Object.values(roomState.members);
-    for (let i = 0; i < 4; i++) { const m = list[i]; const div = document.createElement("div"); div.className = "story-item";
-      if (m) { const crown = m.uid === roomState.adminUid ? "👑" : ""; div.innerHTML = `<div class="story-ring"><div class="story-av">${escapeHtml(m.avatar || "🙂")}</div></div><div class="story-name">${crown}${escapeHtml(m.name || "成员")}</div>`; }
-      else { div.innerHTML = `<div class="story-ring empty"><div class="story-av" style="color:#ccc;font-size:16px;">+</div></div><div class="story-name" style="color:#aaa;">空席位</div>`; }
-      box.appendChild(div);
-    }
-  }
-
-  function renderChats() {
-    const list = document.getElementById("chatList"); const items = Object.values(roomState.chats).sort((a, b) => a.ts - b.ts);
-    list.innerHTML = items.length ? "" : `<p class="desc" style="text-align:center;margin-top:40px;">还没有消息，发第一句话打个招呼吧 👋</p>`;
-    items.forEach(c => { const div = document.createElement("div"); div.className = "msg" + (c.uid === uid ? " mine" : ""); div.innerHTML = `<div class="msg-meta">${escapeHtml(c.avatar || "🙂")} ${escapeHtml(c.name || "成员")}</div><div class="msg-bubble">${escapeHtml(c.text || "")}</div>`; list.appendChild(div); });
-  }
-
-  function renderMoments() {
-    const box = document.getElementById("momentsList"); const items = Object.entries(roomState.moments).sort((a, b) => b[1].ts - a[1].ts);
-    box.innerHTML = items.length ? "" : `<p class="desc" style="text-align:center;">朋友圈还是空的，发一条专属动态吧 ✨</p>`;
-    items.forEach(([id, p]) => {
-      const likes = p.likes ? Object.values(p.likes) : []; const likedByMe = p.likes && p.likes[uid]; const comments = p.comments ? Object.values(p.comments) : []; const card = document.createElement("div"); card.className = "card";
-      card.innerHTML = `<div class="post-head"><div class="post-av">${escapeHtml(p.avatar || "🙂")}</div><div><strong style="font-size:14px;">${escapeHtml(p.name || "成员")}</strong><div style="font-size:11px;color:var(--sub);">${new Date(p.ts).toLocaleString()}</div></div></div><div class="post-body">${escapeHtml(p.text || "")}</div><div class="post-actions"><span style="cursor:pointer;color:${likedByMe ? '#ff3b30' : 'inherit'}" onclick="toggleLike('${id}')">${likedByMe ? '❤️' : '🤍'} 赞 (${likes.length})</span><span style="cursor:pointer;" onclick="addComment('${id}')">💬 评论 (${comments.length})</span></div>${comments.length ? `<div class="comment-box">${comments.map(cm => `<div><strong>${escapeHtml(cm.name || "成员")}：</strong>${escapeHtml(cm.text || "")}</div>`).join("")}</div>` : ""}`;
-      box.appendChild(card);
-    });
-  }
-
-  function renderGame() {
-    if (roomState.game?.truthDare) document.getElementById("tdResult").textContent = roomState.game.truthDare;
-    const uc = roomState.game?.undercover; const box = document.getElementById("ucWordBox");
-    if (uc && uc.words && uc.words[uid]) box.innerHTML = `你的身份词：<span style="color:#dc2743;font-size:18px;">${escapeHtml(uc.words[uid])}</span><div style="font-size:11px;color:#888;margin-top:4px;">请勿让别人看到你的屏幕</div>`;
-    else box.textContent = "等待开启新一局...";
-  }
-
-  function renderAdminPanel(me, isAdmin) {
-    document.getElementById("meName").textContent = `${me.avatar} ${me.name}`; document.getElementById("meIdLabel").textContent = `虚拟ID: ${uid}`;
-    const roleBadge = document.getElementById("meRoleBadge"); roleBadge.textContent = isAdmin ? "👑 主理人" : "正式成员"; roleBadge.className = isAdmin ? "badge admin" : "badge";
-    const pendings = Object.values(roomState.pending); document.getElementById("adminDot").classList.toggle("hidden", !(isAdmin && pendings.length > 0)); document.getElementById("adminPanel").classList.toggle("hidden", !isAdmin); document.getElementById("claimAdminBox").classList.toggle("hidden", isAdmin);
-    if (isAdmin) { const pList = document.getElementById("pendingList");
-      if (!pendings.length) pList.innerHTML = "暂无待审批申请";
-      else pList.innerHTML = pendings.map(p => `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);"><div><strong>${escapeHtml(p.avatar || "🙂")} ${escapeHtml(p.name || "新成员")}</strong><div style="font-size:11px;">${escapeHtml(p.bio || "申请加入空间")}</div></div><div style="display:flex;gap:6px;"><button class="btn-ok btn-sm" onclick="approveMember('${p.uid}')">通过</button><button class="btn-danger btn-sm" onclick="rejectMember('${p.uid}')">拒绝</button></div></div>`).join("");
-    }
-  }
-
-  window.submitApplication = async () => {
-    const name = document.getElementById("nickInput").value.trim(); const bio = document.getElementById("bioInput").value.trim(); const code = document.getElementById("adminKeyInput").value.trim();
-    if (!name) return alert("请先输入你的昵称");
-    const memberCount = Object.keys(roomState.members).length; const isFirstUser = !roomState.adminUid && memberCount === 0; const isCodeValid = code && code === roomState.adminCode;
-    if (isFirstUser || isCodeValid) {
-      if (memberCount >= 4 && !roomState.members[uid]) return alert("当前房间已满 4 人！");
-      const updates = {}; updates[`room/adminUid`] = uid; updates[`room/members/${uid}`] = { uid, name, bio, avatar: selectedEmoji, joinedAt: Date.now() }; if (isFirstUser && code) updates[`room/adminCode`] = code; await update(ref(db), updates);
-    } else {
-      if (memberCount >= 4) return alert("该私密空间已满 4 人，无法继续申请");
-      await set(ref(db, `room/pending/${uid}`), { uid, name, bio, avatar: selectedEmoji, ts: Date.now() });
-    }
+  const TD_BANK = {
+    chill: [
+      "【轻松破冰】在场几个人里，你第一印象最深的是谁？为什么？","【轻松破冰】如果立刻给你一张机票，你最想飞去哪个城市？","【轻松破冰】你手机里最舍不得删的一款 App 是什么？","【轻松破冰】周末早上醒来，你最想吃的第一顿饭是什么？","【轻松破冰】你最近单曲循环最多的一首歌是什么？","【轻松破冰】如果能拥有一项超能力，你最想选哪一种？","【轻松破冰】你最喜欢的季节和天气是什么样的？","【轻松破冰】不带手机出门，你最多能撑几个小时？","【轻松破冰】你平时最喜欢在哪个时间段发呆或听歌？","【轻松破冰】如果开一家小店，你最想开咖啡馆、书店、花店还是杂货铺？","【轻松破冰】你衣柜里穿得最久的一件衣服是什么？","【轻松破冰】最喜欢甜食、咸辣、酸口还是原味？","【轻松破冰】看电影或刷剧时，你最喜欢哪种类型？","【轻松破冰】如果今天不用上班/上课/赶ddl，你最想怎么度过？","【轻松破冰】你小时候最喜欢的一个动画角色是谁？","【轻松破冰】出门包里一定会带的一样小东西是什么？","【轻松破冰】你觉得自己是个早起型、夜猫子还是随缘型？","【轻松破冰】最近看过的最有趣的一条短视频或段子是什么？","【轻松破冰】如果可以养一只奇幻宠物，你想养什么？","【轻松破冰】你最喜欢的一种花或植物是什么？","【轻松破冰】旅行时你是做详细攻略派还是走到哪算哪派？","【轻松破冰】最喜欢喝奶茶里的哪种小料（珍珠、椰果、奶盖还是纯茶）？","【轻松破冰】你平时写字喜欢用什么颜色的笔？","【轻松破冰】如果能穿越去古代或未来，你想去哪？","【轻松破冰】最近一次让你笑出声的事情是什么？","【轻松破冰】你最讨厌的一种食物是什么？","【轻松破冰】洗澡时你会唱歌、放空还是听播客？","【轻松破冰】你觉得自己最拿手的一件小事是什么？","【轻松破冰】如果给今天的自己打分（1-10分），你会打几分？","【轻松破冰】最想和大家一起去哪里团建或聚餐？","【轻松破冰】你书桌或床头现在放着什么东西？","【轻松破冰】听到下雨声时，你脑子里第一秒想到什么？","【轻松破冰】你最喜欢的一种颜色是什么？","【轻松破冰】如果能瞬间学会一门技能或语言，你想学什么？","【轻松破冰】你平时习惯提前到还是卡点到？"
+    ],
+    tea: [
+      "【熟人爆料】最近一次偷偷熬夜是在干嘛？","【熟人爆料】在场的人里，谁最容易“说走就走”或突然消失？","【熟人爆料】你有没有“已读乱回”或故意晚回消息的时候？","【熟人爆料】最近一次冲动消费买的是什么？现在后悔了吗？","【熟人爆料】在场的人里，谁最像群里的“气氛组”或“乐子人”？","【熟人爆料】你有没有在朋友圈发了又秒删的经历？因为什么？","【熟人爆料】你最怕别人看到你手机里的哪个相册或聊天记录？","【熟人爆料】有没有立过什么 Flag，结果当天就倒了？","【熟人爆料】在场的人里，谁最容易陷入选择困难症？","【熟人爆料】你有没有假装在认真听别人说话，其实大脑已经放空了？","【熟人爆料】最近一次嘴硬心软是什么时候？","【熟人爆料】你觉得群里谁的审美和你最像？","【熟人爆料】有没有在公共场合社死过一次？分享一下！","【熟人爆料】你打字经常打错的字或口头禅是什么？","【熟人爆料】在场的人里，谁最适合当“卧底”？为什么？","【熟人爆料】你有没有偷偷给谁点过赞又撤回？","【熟人爆料】最近一次饿到极致是什么时候？吃了什么？","【熟人爆料】你觉得自己是个好脾气的人，还是表面平和内心吐槽？","【熟人爆料】有没有买过特别智商税但当时觉得很香的东西？","【熟人爆料】在场的人里，谁最容易熬夜修仙？","【熟人爆料】你手机电量低于多少会开始焦虑？","【熟人爆料】有没有在群里发错消息（发成别的群或打错字）？","【熟人爆料】你最受不了别人哪种聊天习惯？","【熟人爆料】最近一次“明明很困却不想睡”是什么原因？","【熟人爆料】你觉得自己在朋友眼里是个什么形象？","【熟人爆料】有没有因为懒得动而放弃吃某样东西？","【熟人爆料】在场的人里，谁最容易被一句话逗笑？","【熟人爆料】你有没有偷偷收藏过什么奇怪的歌单或视频？","【熟人爆料】最近一次觉得自己“长大了”或“变成熟了”的瞬间是什么？","【熟人爆料】如果只能留一个人陪你荒岛求生，你会选谁？","【熟人爆料】你有没有在别人面前装作“我懂我懂”其实完全不懂？","【熟人爆料】最近一次想换头像或改昵称是因为什么？","【熟人爆料】你觉得群里谁最靠谱？","【熟人爆料】有没有把闹钟按掉无数次才起床的经历？","【熟人爆料】你平时最喜欢用哪个表情包表达无语？"
+    ],
+    deep: [
+      "【深夜走心】最近一段时间，你心里最在意的一件事是什么？","【深夜走心】你觉得真正的朋友之间，最需要保持什么默契？","【深夜走心】什么时候你会觉得自己其实挺孤独的？","【深夜走心】如果能对一年前的自己说一句话，你想说什么？","【深夜走心】你觉得安全感主要来自哪里？","【深夜走心】面对压力或委屈时，你习惯自己消化还是找人倾诉？","【深夜走心】你现在最期待发生的一件小事是什么？","【深夜走心】有没有哪一刻，你觉得特别感谢现在的朋友们？","【深夜走心】你觉得“开心”对你来说意味着什么？","【深夜走心】在感情或友情里，你最看重哪一点？","【深夜走心】有没有一个遗憾，到现在想起来还是会轻轻叹气？","【深夜走心】你觉得自己最大的优点是什么？","【深夜走心】什么时候你会觉得生活节奏太快，想按个暂停键？","【深夜走心】你希望自己五年后过着怎样的生活？","【深夜走心】有没有一首歌或一句话，曾经陪你度过难熬的日子？","【深夜走心】你觉得在熟人面前卸下防备容易吗？","【深夜走心】最近一次被陌生人或朋友温暖到是什么时候？","【深夜走心】你觉得“自由”对你意味着什么？","【深夜走心】如果可以重来一次选择，你会改掉哪一个决定？","【深夜走心】你现在最想对自己说的一句鼓励是什么？","【深夜走心】你觉得人与人之间最难得的是什么？","【深夜走心】有没有某个瞬间，你突然觉得“啊，这真是个好日子”？","【深夜走心】你容易内耗吗？通常因为什么内耗？","【深夜走心】你觉得陪伴是怎样的存在？","【深夜走心】最近一次有“被理解”的感觉是什么时候？","【深夜走心】你对未来的哪件事最充满好奇？","【深夜走心】有没有想过搬去一个完全陌生的城市重新开始？","【深夜走心】你觉得自己是个念旧的人吗？","【深夜走心】如果写一封信给未来的自己，开头第一句会写什么？","【深夜走心】你觉得幸福感往往藏在哪些小细节里？","【深夜走心】面对不喜欢的人或事，你现在会怎么处理？","【深夜走心】你最珍惜的一段回忆是什么？","【深夜走心】你觉得“做自己”最难的地方在哪里？","【深夜走心】今天有没有哪一秒让你觉得很安心？","【深夜走心】如果可以许一个不切实际的愿望，你想许什么？"
+    ],
+    dare: [
+      "【高能大冒险】在群里发一条至少 25 个字的彩虹屁夸奖左边第一位成员！","【高能大冒险】用叠词发一条消息，连续发 3 条！","【高能大冒险】把你的群聊状态改成“今日已电量耗尽🔋”，坚持 30 分钟！","【高能大冒险】在群里发一个你此刻最真实的表情包或自拍表情！","【高能大冒险】用特别正式、像播音员一样的语气在群里问好！","【高能大冒险】发一条纯符号组成的暗号，让别人猜是什么意思！","【高能大冒险】用撒娇或极其客气的语气向群里要一个“赞”！","【高能大冒险】连续发 5 个不同动物的 Emoji，讲一个 10 秒小故事！","【高能大冒险】用“报告长官！”开头，汇报你此刻在干嘛！","【高能大冒险】在群里用三个词形容你此刻的心情！","【高能大冒险】假装自己是天气预报员，播报今晚群里的气氛！","【高能大冒险】发一条只用成语接龙的 3 句话！","【高能大冒险】用“本喵/本狐/本汪”自称，发一条今晚宣言！","【高能大冒险】在群里给每个人送一个专属外号（仅限今晚有效）！","【高能大冒险】用一段像广告词一样的口吻推荐你手边的一样东西！","【高能大冒险】发一条全是大写字母或感叹号的“激动发言”！","【高能大冒险】用“据说……”开头，编一条离谱但无害的小道消息！","【高能大冒险】发一条只有标点符号和 Emoji 的“无声呐喊”！","【高能大冒险】模仿一位影视角色或动漫角色发一条台词！","【高能大冒险】在群里发起一个投票话题，让另外三人选！","【高能大冒险】用最文艺的句子形容你今天吃的第一顿或最后一顿饭！","【高能大冒险】连续发 3 条消息，每条只能出现一个字！","【高能大冒险】给群里发一个“今日幸运数字”，并说出理由！","【高能大冒险】用“亲爱的各位乘客”开头，宣布空间即将起飞！","【高能大冒险】发一条带押韵的 4 句小顺口溜！","【高能大冒险】用“据可靠消息”评价一下刚刚抽题的人！","【高能大冒险】在群里发一个你最近最想去的旅行地并配一个表情！","【高能大冒险】用极度冷静的语气说一件很普通的小事！","【高能大冒险】发一条包含 4 个不同颜色词汇的句子！","【高能大冒险】给群里发一句“晚安/早安/午安”的特别版版本！","【高能大冒险】用“叮咚！你的专属小助手上线”开头发一条提示！","【高能大冒险】发一条只用疑问句组成的 3 句话！","【高能大冒险】用“今天也是元气满满的一天呢”开头，顺便吐槽一件小事！","【高能大冒险】在群里留下一句“下局我一定……”的豪言壮语！","【高能大冒险】发一条带数字 1 到 9 的句子，但不能按顺序写！"
+    ]
   };
-  window.resetLocalIdentity = async () => { await remove(ref(db, `room/pending/${uid}`)); };
-  window.approveMember = async (targetUid) => { if (Object.keys(roomState.members).length >= 4) return alert("成员已达 4 人上限，无法再通过新成员"); const target = roomState.pending[targetUid]; if (!target) return; const updates = {}; updates[`room/members/${targetUid}`] = { ...target, joinedAt: Date.now() }; updates[`room/pending/${targetUid}`] = null; await update(ref(db), updates); };
-  window.rejectMember = async (targetUid) => { await remove(ref(db, `room/pending/${targetUid}`)); };
-  window.updateAdminCode = async () => { const c = document.getElementById("newAdminCode").value.trim(); if (!c) return alert("请输入新的主理人暗号"); await set(ref(db, "room/adminCode"), c); document.getElementById("newAdminCode").value = ""; alert("主理人暗号已更新！"); };
-  window.claimAdmin = async () => { const c = document.getElementById("claimCodeInput").value.trim(); if (c !== roomState.adminCode) return alert("主理人暗号不正确"); await set(ref(db, "room/adminUid"), uid); alert("验证成功！你已接管主理人权限"); };
-  window.sendChat = async () => { const input = document.getElementById("chatInput"); const text = input.value.trim(); const me = roomState.members[uid]; if (!text || !me) return; input.value = ""; await push(ref(db, "room/chats"), { uid, name: me.name, avatar: me.avatar, text, ts: Date.now() }); };
-  window.publishMoment = async () => { const ta = document.getElementById("momentText"); const text = ta.value.trim(); const me = roomState.members[uid]; if (!text || !me) return; ta.value = ""; await push(ref(db, "room/moments"), { uid, name: me.name, avatar: me.avatar, text, ts: Date.now() }); };
-  window.toggleLike = async (postId) => { const me = roomState.members[uid]; if (!me) return; const liked = roomState.moments[postId]?.likes?.[uid]; if (liked) await remove(ref(db, `room/moments/${postId}/likes/${uid}`)); else await set(ref(db, `room/moments/${postId}/likes/${uid}`), me.name); };
-  window.addComment = async (postId) => { const me = roomState.members[uid]; const text = prompt("写下你的评论："); if (!text || !text.trim() || !me) return; await push(ref(db, `room/moments/${postId}/comments`), { uid, name: me.name, text: text.trim(), ts: Date.now() }); };
-  window.drawTruthDare = async () => { const pool = ["【真心话】在场 4 个人里，你第一印象最深的是谁？为什么？", "【真心话】最近一次偷偷熬夜是在干嘛？", "【大冒险】在群里发一张你相册里最近拍的一张照片描述（或自拍表情）！", "【真心话】如果立刻给你一张机票，你最想飞去哪个城市？", "【大冒险】用语音或文字夸夸群里左边第一位头像的朋友 20 个字！", "【真心话】你手机里最舍不得删的一款 App 是什么？"]; await set(ref(db, "room/game/truthDare"), pool[Math.floor(Math.random() * pool.length)]); };
-  window.startUndercover = async () => { const memberIds = Object.keys(roomState.members); if (memberIds.length < 3) return alert("至少需要 3 位成员入群才能开局哦！"); const pairs = [["奶茶", "咖啡"], ["火锅", "麻辣烫"], ["微信", "QQ"], ["枕头", "抱枕"], ["吉他", "尤克里里"]]; const [civilian, spy] = pairs[Math.floor(Math.random() * pairs.length)]; const spyUid = memberIds[Math.floor(Math.random() * memberIds.length)]; const words = {}; memberIds.forEach(id => { words[id] = (id === spyUid) ? spy : civilian; }); await set(ref(db, "room/game/undercover"), { words, ts: Date.now() }); };
-  window.switchTab = (tabId, btn) => { ["tabChat", "tabMoments", "tabGames", "tabAdmin"].forEach(id => document.getElementById(id).classList.toggle("hidden", id !== tabId)); document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); document.getElementById("chatBar").classList.toggle("hidden", tabId !== "tabChat"); };
-  function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s])); }
+  const UC_PAIRS = [["奶茶","咖啡"],["火锅","麻辣烫"],["微信","QQ"],["枕头","抱枕"],["吉他","尤克里里"],["可乐","雪碧"],["薯片","虾条"],["拖鞋","凉鞋"],["隐形眼镜","墨镜"],["充电宝","数据线"],["暗恋","单相思"],["点赞","评论"],["朋友圈","微博"],["熬夜修仙","倒时差"],["副本","关卡"],["主角光环","锦鲤体质"],["豆浆","牛奶"],["包子","饺子"],["烧烤","烤肉"],["冰淇淋","冰棍"],["西瓜","哈密瓜"],["草莓","车厘子"],["苹果","水蜜桃"],["猫","狐狸"],["柴犬","柯基"],["企鹅","海豹"],["海豚","鲸鱼"],["蝴蝶","蜻蜓"],["向日葵","郁金香"],["仙人掌","多肉"],["雨伞","雨衣"],["卫衣","毛衣"],["帆布鞋","运动鞋"],["双肩包","托特包"],["耳机","音箱"],["台灯","氛围灯"],["日记本","便签纸"],["电影院","演唱会"],["KTV","剧本杀"],["露营","野餐"],["摩天轮","过山车"],["汉堡","三明治"],["披萨","蛋挞"],["意面","炒粉"],["拉面","米线"],["绿茶","乌龙茶"],["美式","拿铁"],["珍珠","芋圆"],["布丁","双皮奶"],["棉花糖","马卡龙"],["早起","晚睡"],["摸鱼","摆烂"],["内耗","躺平"],["社恐","社牛"],["颜控","声控"],["甜党","咸党"],["汤圆","元宵"],["月饼","蛋黄酥"],["粽子","糯米鸡"],["烤红薯","糖炒栗子"],["雪糕","奶昔"],["苏打水","气泡水"],["柠檬茶","柚子茶"],["红酒","果酒"],["热可可","抹茶"],["吹风机","卷发棒"],["口红","润唇膏"],["香水","香薰"],["眼罩","耳塞"],["U型枕","腰靠"],["闹钟","备忘录"],["日历","打卡本"],["拼图","魔方"],["扑克","麻将"],["跳棋","五子棋"],["秋千","跷跷板"],["滑梯","蹦床"],["烟花","仙女棒"],["星星","月亮"],["日出","日落"],["晚霞","极光"],["大海","溪流"],["森林","草原"],["雪山","沙漠"],["小岛","古城"],["书店","咖啡馆"],["甜品店","花店"],["便利店","夜市"],["游乐园","博物馆"],["水族馆","动物园"],["漫画","绘本"],["小说","散文"],["广播剧","播客"],["舞蹈","体操"],["跑步","游泳"],["羽毛球","乒乓球"],["篮球","排球"],["滑板","轮滑"],["骑行","徒步"],["钓鱼","抓娃娃"],["盲盒","手办"],["贴纸","胶带"],["明信片","书签"],["钥匙扣","冰箱贴"],["玩偶","公仔"],["棉花","云朵"],["泡泡","气球"],["风铃","八音盒"],["蜡烛","火柴"],["指南针","地图"],["魔法棒","水晶球"],["披风","斗篷"],["皇冠","发箍"],["星星灯","霓虹灯"],["复古相机","拍立得"],["黑胶唱片","磁带"],["信封","邮票"],["树洞","胶囊"],["愿望瓶","许愿池"],["秘密基地","树屋"]];
+  const DRAW_WORDS = ["猫咪","小狗","兔子","企鹅","大象","长颈鹿","章鱼","蝴蝶","蜗牛","熊猫","太阳","月亮","星星","彩虹","闪电","雪人","仙人掌","向日葵","蘑菇","椰子树","汉堡","披萨","冰淇淋","甜甜圈","西瓜","草莓","荷包蛋","火锅","奶茶","咖啡杯","雨伞","眼镜","皇冠","耳机","相机","吉他","书本","钥匙","剪刀","气球","火箭","热气球","帆船","自行车","摩天轮","城堡","帐篷","灯塔","闹钟","奖杯","打哈欠","比心","睡觉","跑步","钓鱼","拍照","滑冰","许愿","挖宝","迷路","一见钟情","画蛇添足","对牛弹琴","亡羊补牢","守株待兔","杯弓蛇影","狐假虎威","井底之蛙","摸鱼","社死","熬夜","躺平","干饭","心动","发呆","刷手机","吃瓜","变身"];
+  const MATCH_QUESTIONS = ["炸鸡配可乐 🆚 烧烤配冰饮","熬夜看剧/打游戏 🆚 早起吃顿好的","先告白/先主动 🆚 等对方先开口","去海边吹风 🆚 去山上吸氧","收到惊喜礼物 🆚 收到实在红包","冷战冷处理 🆚 立刻当面说开","计划控做全攻略 🆚 随性出发看心情","甜品脑袋 🆚 烤肉/炸物脑袋","安静待在家里 🆚 约朋友出门逛","猫系傲娇 🆚 狗系黏人","下雨天听歌看书 🆚 晴天出门拍照","先苦后甜 🆚 先甜后苦","看电影坐前排/中间 🆚 坐偏后排","手机电量 10% 还能稳住 🆚 低于 30% 就慌","爱吃香菜 🆚 坚决不吃香菜","喜欢冬天窝被窝 🆚 喜欢夏天吹空调","买东西看颜值第一 🆚 看实用性第一","想拥有瞬移能力 🆚 想拥有读心能力","唱 K 必点拿手歌 🆚 专心当气氛麦霸","灵魂拷问：如果今天只剩 3 小时自由时间，你最想和谁待在一起？","灵魂拷问：你觉得友谊里最不能踩的一条红线是什么？","灵魂拷问：如果明天不用工作/学习，你第一件事想干嘛？","灵魂拷问：你觉得自己更像理性派还是感性派？","灵魂拷问：有没有一件小事，你觉得只有懂你的人才会笑？"];
+  const FORTUNE_LIST = ["🌟 大吉签：今天灵感爆棚，适合发一条真诚的动态或开一局新游戏！","🍵 悠闲签：适合泡杯热饮放空 10 分钟，什么都不想也很棒。","🎲 乐子签：今天容易遇到好笑的小事，保持好奇心就对了。","🍀 好运签：可能会收到一条意外暖心的消息或小惊喜。","🌙 治愈签：今晚适合早点洗漱休息，把烦恼留在今天。","🎮 联机签：叫上好友来一局小游戏，运气站在你这边！","✨ 闪光签：你今天的穿搭或状态格外顺眼，自信一点！","🍰 干饭签：适合吃顿好吃的犒劳自己，热量明天再说。"];
+  const EMOJIS = ["🦊","🐱","🐼","🐰","🐶","🐸","🦄","🐻"];
+  let selectedEmoji=EMOJIS[0],uid=localStorage.getItem("awbw_uid");
+  if(!uid){uid="AW-"+Math.random().toString(36).substring(2,7).toUpperCase();localStorage.setItem("awbw_uid",uid)}
+  let roomState={adminUid:null,adminCode:"8888",members:{},pending:{},chats:{},moments:{},game:{}};
+  let tdMode="all",replyTarget=null,pendingChatImg="",pendingMomentImg="",secretBomb=Math.floor(Math.random()*100)+1,bombMin=1,bombMax=100;
+
+  function applyTheme(theme){document.body.setAttribute("data-theme",theme==="light"?"":theme);localStorage.setItem("awbw_theme",theme)}
+  window.applyTheme=applyTheme;applyTheme(localStorage.getItem("awbw_theme")||"light");
+  const picker=document.getElementById("emojiPicker");
+  EMOJIS.forEach((em,idx)=>{const el=document.createElement("div");el.className="emoji-opt"+(idx===0?" sel":"");el.textContent=em;el.onclick=()=>{selectedEmoji=em;document.getElementById("previewAvatar").textContent=em;document.querySelectorAll(".emoji-opt").forEach(x=>x.classList.remove("sel"));el.classList.add("sel")};picker.appendChild(el)});
+  function compressImageFile(file,maxWidth=720,quality=.65){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const scale=img.width>maxWidth?maxWidth/img.width:1;const canvas=document.createElement("canvas");canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL("image/jpeg",quality))};img.onerror=reject;img.src=ev.target.result};reader.onerror=reject;reader.readAsDataURL(file)})}
+  window.handleChatImgChange=async input=>{const file=input.files?.[0];if(!file)return;try{pendingChatImg=await compressImageFile(file,640,.6);const chatInput=document.getElementById("chatInput");chatInput.placeholder="[已选压缩图片，点发送即可发出]";chatInput.focus()}catch{alert("图片读取失败，请换一张试试")}input.value=""};
+  window.handleMomentImgChange=async input=>{const file=input.files?.[0];if(!file)return;try{pendingMomentImg=await compressImageFile(file,760,.65);document.getElementById("momentImgTip").textContent="已压缩就绪 ✓"}catch{alert("图片处理失败")}input.value=""};
+  window.setReplyTarget=(name,text)=>{replyTarget={name,text};document.getElementById("quoteText").textContent=`回复 ${name}：${text}`;document.getElementById("quoteBanner").classList.remove("hidden");document.getElementById("chatInput").focus()};
+  window.clearQuote=()=>{replyTarget=null;document.getElementById("quoteBanner").classList.add("hidden")};
+  window.insertQuickEmoji=em=>{const inp=document.getElementById("chatInput");inp.value=(inp.value||"")+em;inp.focus()};
+  onValue(ref(db,"room"),snap=>{const val=snap.val()||{};roomState={adminUid:val.adminUid||null,adminCode:val.adminCode||"8888",members:val.members||{},pending:val.pending||{},chats:val.chats||{},moments:val.moments||{},game:val.game||{}};renderAll()},err=>{document.getElementById("headerStatus").textContent="数据库未开放读写";alert("Firebase 连接提示："+err.message)});
+  function scrollChatToBottom(){const mainEl=document.querySelector("main");requestAnimationFrame(()=>{mainEl.scrollTop=mainEl.scrollHeight})}
+  function renderAll(){const me=roomState.members[uid],myPending=roomState.pending[uid],isAdmin=roomState.adminUid===uid,memberCount=Object.keys(roomState.members).length,statusBadge=document.getElementById("headerStatus");if(me){statusBadge.textContent=isAdmin?`👑 主理人 · ${memberCount}/4`:`已入群 · ${memberCount}/4`;statusBadge.className=isAdmin?"badge admin":"badge"}else{statusBadge.textContent=`私密空间 · ${memberCount}/4`;statusBadge.className="badge"}if(!me){document.getElementById("gateView").classList.remove("hidden");document.getElementById("mainView").classList.add("hidden");document.getElementById("chatBar").classList.add("hidden");document.getElementById("tabBar").classList.add("hidden");if(myPending){document.getElementById("applyForm").classList.add("hidden");document.getElementById("pendingBox").classList.remove("hidden");document.getElementById("myVirtualId").textContent=`${myPending.avatar} ${myPending.name} (${uid})`;document.getElementById("gateTitle").textContent="等待主理人审核"}else{document.getElementById("applyForm").classList.remove("hidden");document.getElementById("pendingBox").classList.add("hidden");document.getElementById("gateTitle").textContent=!roomState.adminUid?"创建你的主理人身份":"生成你的虚拟身份"}return}document.getElementById("gateView").classList.add("hidden");document.getElementById("mainView").classList.remove("hidden");document.getElementById("tabBar").classList.remove("hidden");const activeTab=document.querySelector(".tab-btn.active")?.dataset.tab||"tabChat";document.getElementById("chatBar").classList.toggle("hidden",activeTab!=="tabChat");renderStories();renderChats();renderMoments();renderGame();renderAdminPanel(me,isAdmin);if(activeTab==="tabChat")scrollChatToBottom()}
+  function renderStories(){const box=document.getElementById("memberStories");box.innerHTML="";const list=Object.values(roomState.members);for(let i=0;i<4;i++){const m=list[i],div=document.createElement("div");div.className="story-item";if(m){const crown=m.uid===roomState.adminUid?"👑":"",mood=m.mood||"✨ 在线摸鱼";div.innerHTML=`<div class="story-ring"><div class="story-av">${escapeHtml(m.avatar||"🙂")}</div></div><div class="story-mood">${escapeHtml(mood)}</div><div class="story-name">${crown}${escapeHtml(m.name||"成员")}</div>`}else{div.innerHTML=`<div class="story-ring empty"><div class="story-av" style="color:var(--sub);font-size:16px;">+</div></div><div class="story-mood" style="opacity:.5;">待加入</div><div class="story-name" style="color:var(--sub);">空席位</div>`}box.appendChild(div)}}
+  function renderChats(){const list=document.getElementById("chatList"),items=Object.values(roomState.chats).sort((a,b)=>a.ts-b.ts);list.innerHTML=items.length?"":`<p class="desc" style="text-align:center;margin-top:40px;">还没有消息，发第一句话打个招呼吧 👋</p>`;items.forEach(c=>{const isMine=c.uid===uid,div=document.createElement("div");div.className="msg"+(isMine?" mine":"");const quoteHtml=c.reply?`<div class="msg-quote">↩ ${escapeHtml(c.reply.name)}：${escapeHtml(c.reply.text)}</div>`:"",imgHtml=c.img?`<img class="msg-img" src="${c.img}" alt="图片消息" />`:"",textHtml=c.text?`<div class="msg-bubble">${escapeHtml(c.text)}</div>`:"",safeName=JSON.stringify(c.name||"成员"),safePreview=JSON.stringify(c.text||"[图片]");div.innerHTML=`<div class="msg-meta">${escapeHtml(c.avatar||"🙂")} ${escapeHtml(c.name||"成员")}</div>${quoteHtml}${textHtml}${imgHtml}<div class="msg-sub-act" onclick='setReplyTarget(${safeName}, ${safePreview})'>引用回复</div>`;list.appendChild(div)})}
+  function renderMoments(){const box=document.getElementById("momentsList"),items=Object.entries(roomState.moments).sort((a,b)=>b[1].ts-a[1].ts);box.innerHTML=items.length?"":`<p class="desc" style="text-align:center;">朋友圈还是空的，发一条专属动态吧 ✨</p>`;items.forEach(([id,p])=>{const likes=p.likes?Object.values(p.likes):[],likedByMe=p.likes&&p.likes[uid],comments=p.comments?Object.values(p.comments):[],imgHtml=p.img?`<img class="msg-img" style="max-width:100%;max-height:280px;margin-bottom:10px;" src="${p.img}" alt="动态图片" />`:"",card=document.createElement("div");card.className="card";card.innerHTML=`<div class="post-head"><div class="post-av">${escapeHtml(p.avatar||"🙂")}</div><div><strong style="font-size:14px;">${escapeHtml(p.name||"成员")}</strong><div style="font-size:11px;color:var(--sub);">${new Date(p.ts).toLocaleString()}</div></div></div><div class="post-body">${escapeHtml(p.text||"")}</div>${imgHtml}<div class="post-actions"><span style="cursor:pointer;color:${likedByMe?"#ff3b30":"inherit"}" onclick="toggleLike('${id}')">${likedByMe?"❤️":"🤍"} 赞 (${likes.length})</span><span style="cursor:pointer;" onclick="addComment('${id}')">💬 评论 (${comments.length})</span></div>${comments.length?`<div class="comment-box">${comments.map(cm=>`<div><strong>${escapeHtml(cm.name||"成员")}：</strong>${escapeHtml(cm.text||"")}</div>`).join("")}</div>`:""}`;box.appendChild(card)})}
+  function renderGame(){if(roomState.game?.truthDare)document.getElementById("tdResult").textContent=roomState.game.truthDare;const uc=roomState.game?.undercover,box=document.getElementById("ucWordBox");if(uc&&uc.words&&uc.words[uid])box.innerHTML=`你的身份词：<span style="color:#dc2743;font-size:18px;">${escapeHtml(uc.words[uid])}</span><div style="font-size:11px;color:var(--sub);margin-top:4px;">请勿让别人看到你的屏幕</div>`;else box.textContent="等待开启新一局..."}
+  function renderAdminPanel(me,isAdmin){document.getElementById("meName").textContent=`${me.avatar} ${me.name}`;document.getElementById("meIdLabel").textContent=`虚拟ID: ${uid}`;if(me.mood)document.getElementById("moodSelect").value=me.mood;const roleBadge=document.getElementById("meRoleBadge");roleBadge.textContent=isAdmin?"👑 主理人":"正式成员";roleBadge.className=isAdmin?"badge admin":"badge";const pendings=Object.values(roomState.pending);document.getElementById("adminDot").classList.toggle("hidden",!(isAdmin&&pendings.length>0));document.getElementById("adminPanel").classList.toggle("hidden",!isAdmin);document.getElementById("claimAdminBox").classList.toggle("hidden",isAdmin);if(isAdmin){const pList=document.getElementById("pendingList");if(!pendings.length)pList.innerHTML="暂无待审批申请";else pList.innerHTML=pendings.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);"><div><strong>${escapeHtml(p.avatar||"🙂")} ${escapeHtml(p.name||"新成员")}</strong><div style="font-size:11px;">${escapeHtml(p.bio||"申请加入空间")}</div></div><div style="display:flex;gap:6px;"><button class="btn-ok btn-sm" onclick="approveMember('${p.uid}')">通过</button><button class="btn-danger btn-sm" onclick="rejectMember('${p.uid}')">拒绝</button></div></div>`).join("")}}
+  window.submitApplication=async()=>{const name=document.getElementById("nickInput").value.trim(),bio=document.getElementById("bioInput").value.trim(),code=document.getElementById("adminKeyInput").value.trim();if(!name)return alert("请先输入你的昵称");const memberCount=Object.keys(roomState.members).length,isFirstUser=!roomState.adminUid&&memberCount===0,isCodeValid=code&&code===roomState.adminCode;if(isFirstUser||isCodeValid){if(memberCount>=4&&!roomState.members[uid])return alert("当前房间已满 4 人！");const updates={};updates["room/adminUid"]=uid;updates[`room/members/${uid}`]={uid,name,bio,avatar:selectedEmoji,mood:"✨ 在线摸鱼",joinedAt:Date.now()};if(isFirstUser&&code)updates["room/adminCode"]=code;await update(ref(db),updates)}else{if(memberCount>=4)return alert("该私密空间已满 4 人，无法继续申请");await set(ref(db,`room/pending/${uid}`),{uid,name,bio,avatar:selectedEmoji,ts:Date.now()})}};
+  window.resetLocalIdentity=async()=>{await remove(ref(db,`room/pending/${uid}`))};
+  window.approveMember=async targetUid=>{if(Object.keys(roomState.members).length>=4)return alert("成员已达 4 人上限，无法再通过新成员");const target=roomState.pending[targetUid];if(!target)return;const updates={};updates[`room/members/${targetUid}`]={...target,mood:"✨ 在线摸鱼",joinedAt:Date.now()};updates[`room/pending/${targetUid}`]=null;await update(ref(db),updates)};
+  window.rejectMember=async targetUid=>{await remove(ref(db,`room/pending/${targetUid}`))};
+  window.updateAdminCode=async()=>{const c=document.getElementById("newAdminCode").value.trim();if(!c)return alert("请输入新的主理人暗号");await set(ref(db,"room/adminCode"),c);document.getElementById("newAdminCode").value="";alert("主理人暗号已更新！")};
+  window.claimAdmin=async()=>{const c=document.getElementById("claimCodeInput").value.trim();if(c!==roomState.adminCode)return alert("主理人暗号不正确");await set(ref(db,"room/adminUid"),uid);alert("验证成功！你已接管主理人权限")};
+  window.saveMood=async()=>{const mood=document.getElementById("moodSelect").value;if(!roomState.members[uid])return;await update(ref(db,`room/members/${uid}`),{mood});alert("状态挂牌已更新！")};
+  window.sendChat=async()=>{const input=document.getElementById("chatInput"),text=input.value.trim(),me=roomState.members[uid];if((!text&&!pendingChatImg)||!me)return;const payload={uid,name:me.name,avatar:me.avatar,text,ts:Date.now()};if(replyTarget)payload.reply=replyTarget;if(pendingChatImg)payload.img=pendingChatImg;input.value="";input.placeholder="发消息...";pendingChatImg="";clearQuote();await push(ref(db,"room/chats"),payload);scrollChatToBottom()};
+  window.publishMoment=async()=>{const ta=document.getElementById("momentText"),text=ta.value.trim(),me=roomState.members[uid];if((!text&&!pendingMomentImg)||!me)return;const payload={uid,name:me.name,avatar:me.avatar,text,ts:Date.now()};if(pendingMomentImg)payload.img=pendingMomentImg;ta.value="";pendingMomentImg="";document.getElementById("momentImgTip").textContent="未选图片";await push(ref(db,"room/moments"),payload)};
+  window.toggleLike=async postId=>{const me=roomState.members[uid];if(!me)return;const liked=roomState.moments[postId]?.likes?.[uid];if(liked)await remove(ref(db,`room/moments/${postId}/likes/${uid}`));else await set(ref(db,`room/moments/${postId}/likes/${uid}`),me.name)};
+  window.addComment=async postId=>{const me=roomState.members[uid],text=prompt("写下你的评论：");if(!text||!text.trim()||!me)return;await push(ref(db,`room/moments/${postId}/comments`),{uid,name:me.name,text:text.trim(),ts:Date.now()})};
+  window.setTdMode=(mode,el)=>{tdMode=mode;document.querySelectorAll("#tdModes .mode-pill").forEach(x=>x.classList.remove("active"));el.classList.add("active")};
+  window.drawTruthDare=async()=>{const pool=tdMode==="all"?[...TD_BANK.chill,...TD_BANK.tea,...TD_BANK.deep,...TD_BANK.dare]:TD_BANK[tdMode],pick=pool[Math.floor(Math.random()*pool.length)];await set(ref(db,"room/game/truthDare"),pick)};
+  window.startUndercover=async()=>{const memberIds=Object.keys(roomState.members);if(memberIds.length<3)return alert("至少需要 3 位成员入群才能开局哦！");const [civilian,spy]=UC_PAIRS[Math.floor(Math.random()*UC_PAIRS.length)],spyUid=memberIds[Math.floor(Math.random()*memberIds.length)],words={};memberIds.forEach(id=>{words[id]=id===spyUid?spy:civilian});await set(ref(db,"room/game/undercover"),{words,ts:Date.now()})};
+  const canvas=document.getElementById("drawCanvas"),ctx=canvas.getContext("2d");ctx.lineWidth=4;ctx.lineCap="round";ctx.strokeStyle="#111";let drawing=false;
+  function getCanvasPos(e){const rect=canvas.getBoundingClientRect(),clientX=e.touches?e.touches[0].clientX:e.clientX,clientY=e.touches?e.touches[0].clientY:e.clientY;return{x:(clientX-rect.left)*(canvas.width/rect.width),y:(clientY-rect.top)*(canvas.height/rect.height)}}
+  canvas.addEventListener("pointerdown",e=>{drawing=true;const p=getCanvasPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
+  canvas.addEventListener("pointermove",e=>{if(!drawing)return;const p=getCanvasPos(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+  window.addEventListener("pointerup",()=>{drawing=false});
+  window.pickDrawWord=()=>{const word=DRAW_WORDS[Math.floor(Math.random()*DRAW_WORDS.length)];document.getElementById("drawWordBox").innerHTML=`本轮画词：<strong style="color:#dc2743;font-size:15px;">${escapeHtml(word)}</strong>（画完记得点清屏）`};
+  window.clearCanvas=()=>ctx.clearRect(0,0,canvas.width,canvas.height);
+  window.drawMatchQuestion=()=>{const q=MATCH_QUESTIONS[Math.floor(Math.random()*MATCH_QUESTIONS.length)];document.getElementById("matchResult").textContent=q};
+  window.drawFortune=()=>{const f=FORTUNE_LIST[Math.floor(Math.random()*FORTUNE_LIST.length)];document.getElementById("fortuneResult").textContent=f};
+  window.playRps=myChoice=>{const opts=["✊ 石头","✌️ 剪刀","🖐️ 布"],aiChoice=opts[Math.floor(Math.random()*opts.length)];let verdict="平局！再来一轮";if((myChoice.includes("石头")&&aiChoice.includes("剪刀"))||(myChoice.includes("剪刀")&&aiChoice.includes("布"))||(myChoice.includes("布")&&aiChoice.includes("石头")))verdict="你赢啦 🎉";else if(myChoice!==aiChoice)verdict="这把没拿下 😅";document.getElementById("rpsResult").textContent=`你出 ${myChoice} vs 对手 ${aiChoice} → ${verdict}`};
+  window.resetNumberGuess=()=>{secretBomb=Math.floor(Math.random()*100)+1;bombMin=1;bombMax=100;document.getElementById("numGuessResult").textContent="已重新出题（1~100），开始猜吧！"};
+  window.submitNumberGuess=()=>{const inp=document.getElementById("guessNumInput"),val=parseInt(inp.value,10);if(!val||val<1||val>100)return alert("请输入 1 到 100 之间的数字");inp.value="";if(val===secretBomb)document.getElementById("numGuessResult").innerHTML=`💥 踩中数字 <strong>${val}</strong> 啦！点「重置猜数字」可开下一轮。`;else if(val<secretBomb){bombMin=Math.max(bombMin,val+1);document.getElementById("numGuessResult").textContent=`还没中～范围缩小到 ${bombMin} ~ ${bombMax}`}else{bombMax=Math.min(bombMax,val-1);document.getElementById("numGuessResult").textContent=`还没中～范围缩小到 ${bombMin} ~ ${bombMax}`}};
+  window.switchTab=(tabId,btn)=>{["tabChat","tabMoments","tabGames","tabAdmin"].forEach(id=>document.getElementById(id).classList.toggle("hidden",id!==tabId));document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("chatBar").classList.toggle("hidden",tabId!=="tabChat");if(tabId==="tabChat")scrollChatToBottom()};
+  function escapeHtml(str){return String(str).replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]))}
 </script>
 </body>
 </html>
